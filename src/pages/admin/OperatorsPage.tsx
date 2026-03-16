@@ -71,7 +71,7 @@ export default function OperatorsPage() {
         `)
       if (error) throw new Error(error.message)
       return (data ?? []).map((op) => {
-        const acc = op.accounts as { username: string; is_active: boolean; created_at: string } | null
+        const acc = (Array.isArray(op.accounts) ? op.accounts[0] : op.accounts) as { username: string; is_active: boolean; created_at: string } | null
         return {
           account_id:               op.operator_id,
           username:                 acc?.username ?? '',
@@ -149,7 +149,7 @@ export default function OperatorsPage() {
   })
 
   const remove = useMutation({
-    mutationFn: (id: string) => adminApi.deleteUser(id),
+    mutationFn: (id: string) => adminApi.deleteOperator(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-operators'] })
       toast.success('Operator deleted')

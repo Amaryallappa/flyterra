@@ -169,7 +169,7 @@ export const bookingsApi = {
       .order('scheduled_start', { ascending: false })
     if (error) throw error
     return (data ?? []).map((b) => {
-      const bfs = (b.booking_fields ?? []) as Array<{
+      const bfs = (b.booking_fields ?? []) as unknown as Array<{
         spray_order: number
         fields: { field_id: number; field_name: string; area_acres: number } | null
       }>

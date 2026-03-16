@@ -8,6 +8,7 @@ import {
   Cpu, Battery, MapPin, Gauge, Navigation, Video, VideoOff,
   Maximize2, X, AlertTriangle, Loader2, WifiOff, RotateCcw,
   PlaneLanding, ShieldAlert, CheckCircle2, Radio,
+  type LucideIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -193,7 +194,7 @@ function AbortDialog({
 // ── Telemetry badge helpers ────────────────────────────────────────────────────
 
 function TelBadge({ icon: Icon, label, value, dim }: {
-  icon: React.FC<{ size?: number; className?: string }>
+  icon: LucideIcon
   label: string
   value: string
   dim?: boolean
@@ -458,7 +459,7 @@ export default function OperatorDronePage() {
     Promise.all(
       inProgressJobs.map((j) =>
         operatorApi.getBookingOperations(j.booking_id).then(
-          (ops: { drone_id?: number }[]) => ({ bookingId: j.booking_id, droneId: ops[0]?.drone_id })
+          (result: any) => ({ bookingId: j.booking_id, droneId: result?.drone_id })
         )
       )
     ).then((results) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '@/api/admin'
 import { Eye, EyeOff, KeyRound, CheckCircle2, Loader2, Save } from 'lucide-react'
@@ -21,10 +21,11 @@ export default function SettingsPage() {
   const { data, isLoading } = useQuery<RazorpaySettings>({
     queryKey: ['admin-razorpay-settings'],
     queryFn: adminApi.getRazorpaySettings,
-    onSuccess: (d: RazorpaySettings) => {
-      setKeyId(d.key_id || '')
-    },
   })
+
+  useEffect(() => {
+    if (data) setKeyId(data.key_id || '')
+  }, [data])
 
   const save = useMutation({
     mutationFn: () => {

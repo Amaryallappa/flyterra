@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 
 interface User {
-  account_id: number; username: string; role: string; is_active: boolean
+  account_id: string; username: string; role: string; is_active: boolean
   full_name?: string; mobile_number?: string; created_at: string
 }
 
@@ -19,7 +19,7 @@ export default function UsersPage() {
   })
 
   const toggle = useMutation({
-    mutationFn: ({ id, active }: { id: number; active: boolean }) =>
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       active ? adminApi.deactivateUser(id) : adminApi.activateUser(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); toast.success('Updated') },
     onError: () => toast.error('Failed'),

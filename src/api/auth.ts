@@ -16,6 +16,7 @@ export interface UserProfile {
   is_active: boolean
   full_name?: string
   mobile_number?: string
+  assigned_base_station_id?: number | null
 }
 
 export const authApi = {
@@ -61,7 +62,18 @@ export const authApi = {
       .eq('account_id', session.user.id)
       .single()
     if (error) throw error
-    return data as UserProfile
+    const profile = data as UserProfile
+
+    if (profile.role === 'Operator') {
+      const { data: op } = await supabase
+        .from('operators')
+        .select('assigned_base_station_id')
+        .eq('operator_id', session.user.id)
+        .single()
+      if (op) profile.assigned_base_station_id = op.assigned_base_station_id
+    }
+
+    return profile
   },
 
   logout: async () => {

@@ -536,15 +536,20 @@ export const adminApi = {
 
   // ── Settings ──────────────────────────────────────────────────────────────
 
-  getRazorpaySettings: async () => {
+  getRazorpaySettings: async (): Promise<{ key_id: string; key_id_set: boolean; key_secret_set: boolean; updated_at: string | null }> => {
     const { data, error } = await supabase
       .from('system_settings')
       .select('key, value')
-      .in('key', ['razorpay_key_id'])  // never expose key_secret via frontend
+      .in('key', ['razorpay_key_id', 'razorpay_key_secret'])
     if (error) throw new Error(error.message)
     const map: Record<string, string> = {}
     ;(data ?? []).forEach((row) => { map[row.key] = row.value })
-    return { key_id: map['razorpay_key_id'] ?? '' }
+    return {
+      key_id: map['razorpay_key_id'] ?? '',
+      key_id_set: !!map['razorpay_key_id'],
+      key_secret_set: !!map['razorpay_key_secret'],
+      updated_at: null,
+    }
   },
 
   updateRazorpaySettings: async (d: { key_id?: string; key_secret?: string }) => {

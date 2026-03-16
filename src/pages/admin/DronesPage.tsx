@@ -16,6 +16,11 @@ interface Drone {
   price_per_acre: number; minutes_per_acre: number; active_date: string
   drone_companion_url: string | null
   drone_live_video_url: string | null
+  base_setup_time_mins: number
+  max_acres_per_tank: number
+  station_refill_time_mins: number
+  daily_start_time: string
+  daily_end_time: string
 }
 
 function resolveVideoUrl(drone: Drone): string | null {
@@ -667,19 +672,19 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                               letterSpacing:'.7px' }}>Safety</div>
                 <div style={{ display:'flex',gap:4 }}>
                   <button onClick={() => confirm('ARM the drone?', () => dispatch('ARM'))}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(61,214,140,.15)',
                              color:'#3dd68c',border:'1px solid rgba(61,214,140,.3)' }}>
                     ARM
                   </button>
                   <button onClick={() => dispatch('DISARM')}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(245,197,66,.1)',
                              color:'#f5c542',border:'1px solid rgba(245,197,66,.3)' }}>
                     DISARM
                   </button>
                   <button onClick={() => confirm('⚠ KILL — force disarm immediately?', () => dispatch('KILL'))}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(255,87,87,.15)',
                              color:'#ff5757',border:'1px solid rgba(255,87,87,.4)' }}>
                     KILL
@@ -704,7 +709,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                   />
                   <span style={{ fontSize:10,color:'#7585a0' }}>m</span>
                   <button onClick={() => dispatch('TAKEOFF', { param1: parseFloat(takeoffAlt) || 10 })}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(74,158,255,.15)',
                              color:'#4a9eff',border:'1px solid rgba(74,158,255,.3)' }}>
                     ↑ GO
@@ -723,7 +728,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                     { label:'LOITER', cmd:'LOITER', color:'#a78bfa' },
                   ].map(({ label, cmd, color }) => (
                     <button key={cmd} onClick={() => dispatch(cmd)}
-                      style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                      style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                                fontSize:11,fontWeight:700,
                                background:`rgba(${hexToRgb(color)},.12)`,
                                color,border:`1px solid rgba(${hexToRgb(color)},.3)` }}>
@@ -741,7 +746,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                   {['AUTO', 'STABILIZE', 'ALTHOLD', 'GUIDED'].map((m) => (
                     <button key={m}
                       onClick={() => dispatch('SET_MODE', { mode: m })}
-                      style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                      style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                                fontSize:11,fontWeight:700,
                                background: mode === m
                                  ? 'rgba(74,158,255,.3)' : 'rgba(255,255,255,.06)',
@@ -771,7 +776,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                   />
                   <span style={{ fontSize:10,color:'#7585a0' }}>m/s</span>
                   <button onClick={() => dispatch('SET_SPEED', { param1: parseFloat(targetSpeed) || 5 })}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(167,139,250,.1)',
                              color:'#a78bfa',border:'1px solid rgba(167,139,250,.3)' }}>
                     SET
@@ -793,7 +798,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                   />
                   <span style={{ fontSize:10,color:'#7585a0' }}>m</span>
                   <button onClick={() => dispatch('SET_ALTITUDE', { param1: parseFloat(targetAlt) || 10 })}
-                    style={{ padding:'5px 10px',borderRadius:5,border:'none',cursor:'pointer',
+                    style={{ padding:'5px 10px',borderRadius:5,cursor:'pointer',
                              fontSize:11,fontWeight:700,background:'rgba(167,139,250,.1)',
                              color:'#a78bfa',border:'1px solid rgba(167,139,250,.3)' }}>
                     SET
@@ -810,7 +815,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
                               letterSpacing:'.7px' }}>Mission</div>
                 <button
                   onClick={() => confirm('Start the uploaded mission?', () => dispatch('START_MISSION'))}
-                  style={{ padding:'5px 14px',borderRadius:5,border:'none',cursor:'pointer',
+                  style={{ padding:'5px 14px',borderRadius:5,cursor:'pointer',
                            fontSize:11,fontWeight:700,background:'rgba(61,214,140,.12)',
                            color:'#3dd68c',border:'1px solid rgba(61,214,140,.3)' }}>
                   ▶ START MISSION

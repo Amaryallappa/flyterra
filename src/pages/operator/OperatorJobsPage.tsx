@@ -7,6 +7,7 @@ import {
   CalendarDays, Loader2, Rocket, ChevronDown, ChevronRight,
   CheckCircle2, XCircle, Clock, Plane, Droplets, RefreshCw,
   Warehouse, Flag, AlertCircle, RotateCcw,
+  type LucideIcon,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -50,7 +51,7 @@ interface BookingOperations {
 
 // ── Phase config ───────────────────────────────────────────────────────────────
 
-const PHASE_CFG: Record<string, { label: string; color: string; bg: string; Icon: React.FC<{size?:number}> }> = {
+const PHASE_CFG: Record<string, { label: string; color: string; bg: string; Icon: LucideIcon }> = {
   Idle:          { label: 'Idle',           color: '#94a3b8', bg: '#f8fafc', Icon: Clock       },
   Base_To_Field: { label: 'To Field',       color: '#3b82f6', bg: '#eff6ff', Icon: Plane       },
   Spraying:      { label: 'Spraying',       color: '#22c55e', bg: '#f0fdf4', Icon: Droplets    },
