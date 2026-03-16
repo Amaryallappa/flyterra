@@ -1,0 +1,106 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+
+// Public pages
+import LandingPage    from '@/pages/public/LandingPage'
+import LoginPage      from '@/pages/public/LoginPage'
+import RegisterPage   from '@/pages/public/RegisterPage'
+
+// Farmer pages
+import FarmerLayout   from '@/pages/farmer/FarmerLayout'
+import FarmerDashboard from '@/pages/farmer/FarmerDashboard'
+import FieldsPage     from '@/pages/farmer/FieldsPage'
+import AddFieldPage   from '@/pages/farmer/AddFieldPage'
+import BookServicePage from '@/pages/farmer/BookServicePage'
+import BookingsPage   from '@/pages/farmer/BookingsPage'
+import BookingDetailPage from '@/pages/farmer/BookingDetailPage'
+import ProfilePage    from '@/pages/farmer/ProfilePage'
+
+// Operator pages
+import OperatorLayout    from '@/pages/operator/OperatorLayout'
+import OperatorDashboard from '@/pages/operator/OperatorDashboard'
+import FieldVerifyPage   from '@/pages/operator/FieldVerifyPage'
+import OperatorJobsPage   from '@/pages/operator/OperatorJobsPage'
+import OperatorDronePage  from '@/pages/operator/OperatorDronePage'
+
+// Admin pages
+import AdminLayout    from '@/pages/admin/AdminLayout'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import StationsPage   from '@/pages/admin/StationsPage'
+import DronesPage     from '@/pages/admin/DronesPage'
+import BatteriesPage  from '@/pages/admin/BatteriesPage'
+import UsersPage      from '@/pages/admin/UsersPage'
+import OperatorsPage  from '@/pages/admin/OperatorsPage'
+import SettingsPage        from '@/pages/admin/SettingsPage'
+import AdminBookingsPage   from '@/pages/admin/AdminBookingsPage'
+import FarmersPage         from '@/pages/admin/FarmersPage'
+import FarmerDetailPage    from '@/pages/admin/FarmerDetailPage'
+
+function RoleGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" /></div>
+  if (!user) return <Navigate to="/login" replace />
+  if (!roles.includes(user.role)) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
+function AuthRedirect() {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role === 'Farmer')   return <Navigate to="/farmer" replace />
+  if (user.role === 'Operator') return <Navigate to="/operator" replace />
+  if (user.role === 'Admin')    return <Navigate to="/admin" replace />
+  return <Navigate to="/" replace />
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
+          {/* Public */}
+          <Route path="/"         element={<LandingPage />} />
+          <Route path="/login"    element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<AuthRedirect />} />
+
+          {/* Farmer */}
+          <Route path="/farmer" element={<RoleGuard roles={['Farmer']}><FarmerLayout /></RoleGuard>}>
+            <Route index                    element={<FarmerDashboard />} />
+            <Route path="fields"            element={<FieldsPage />} />
+            <Route path="fields/new"        element={<AddFieldPage />} />
+            <Route path="book"              element={<BookServicePage />} />
+            <Route path="bookings"          element={<BookingsPage />} />
+            <Route path="bookings/:id"      element={<BookingDetailPage />} />
+            <Route path="profile"           element={<ProfilePage />} />
+          </Route>
+
+          {/* Operator */}
+          <Route path="/operator" element={<RoleGuard roles={['Operator']}><OperatorLayout /></RoleGuard>}>
+            <Route index                    element={<OperatorDashboard />} />
+            <Route path="fields"            element={<FieldVerifyPage />} />
+            <Route path="jobs"              element={<OperatorJobsPage />} />
+            <Route path="drones"            element={<OperatorDronePage />} />
+          </Route>
+
+          {/* Admin */}
+          <Route path="/admin" element={<RoleGuard roles={['Admin']}><AdminLayout /></RoleGuard>}>
+            <Route index                    element={<AdminDashboard />} />
+            <Route path="stations"          element={<StationsPage />} />
+            <Route path="drones"            element={<DronesPage />} />
+            <Route path="batteries"         element={<BatteriesPage />} />
+            <Route path="operators"         element={<OperatorsPage />} />
+            <Route path="users"             element={<UsersPage />} />
+            <Route path="bookings"          element={<AdminBookingsPage />} />
+            <Route path="farmers"           element={<FarmersPage />} />
+            <Route path="farmers/:id"       element={<FarmerDetailPage />} />
+            <Route path="settings"          element={<SettingsPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
+}
