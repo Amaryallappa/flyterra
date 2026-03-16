@@ -212,16 +212,30 @@ function TelBadge({ icon: Icon, label, value, dim }: {
 
 function DroneCard({
   drone,
-  telemetry,
   activeBookingId,
 }: {
   drone: Drone
-  telemetry: TelemetryFrame | null
   activeBookingId: number | null
 }) {
   const qc = useQueryClient()
   const [showVideo, setShowVideo] = useState(false)
   const [abortTarget, setAbortTarget] = useState<number | null>(null)
+  
+  // Real-time telemetry for THIS drone specifically
+  const { on, connected } = useSocket(drone.drone_companion_url || undefined)
+  const [telemetry, setTelemetry] = useState<TelemetryFrame | null>(null)
+
+  useEffect(() => {
+    if (!drone.drone_companion_url) return
+    const off = on('drone_telemetry', (payload: any) => {
+      const frame = payload as TelemetryFrame
+      // Only care about matches for this drone_id
+      if (frame.drone_id === drone.drone_id) {
+        setTelemetry(frame)
+      }
+    })
+    return off
+  }, [on, drone.drone_id, drone.drone_companion_url])
 
   const cmdMutation = useMutation({
     mutationFn: ({ cmd }: { cmd: string }) =>
@@ -272,7 +286,7 @@ function DroneCard({
           </div>
 
           {/* Live indicator */}
-          {hasTelemetry && (
+          {(hasTelemetry && connected) && (
             <span className="flex items-center gap-1 text-xs text-green-600 font-medium flex-shrink-0">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
               Live
@@ -392,11 +406,7 @@ function DroneCard({
 
 export default function OperatorDronePage() {
   const { user } = useAuth()
-  const { on, emit } = useSocket()
   const stationId = user?.assigned_base_station_id
-
-  // Map of drone_id → latest telemetry frame
-  const [telemetry, setTelemetry] = useState<Record<number, TelemetryFrame>>({})
 
   // Map of drone_id → active booking_id (in-progress booking using this drone)
   const [activeBookings, setActiveBookings] = useState<Record<number, number>>({})
@@ -407,34 +417,7 @@ export default function OperatorDronePage() {
     refetchInterval: 30_000,
   })
 
-  // Join/leave station Socket.IO room for telemetry
-  useEffect(() => {
-    if (!stationId) return
-    emit('join_station', { station_id: stationId })
-    return () => { emit('leave_station', { station_id: stationId }) }
-  }, [stationId, emit])
-
-  // Listen for drone_telemetry events
-  useEffect(() => {
-    const off = on('drone_telemetry', (payload: unknown) => {
-      const frame = payload as TelemetryFrame
-      if (!frame?.drone_id) return
-      setTelemetry((prev) => ({ ...prev, [frame.drone_id]: frame }))
-    })
-    return off
-  }, [on])
-
-  // Listen for operation_update to track which drone has an active booking
-  useEffect(() => {
-    const off = on('operation_update', () => {
-      // Re-check today's jobs to update active booking map
-      // We piggyback on the drones query refetch to keep it simple
-    })
-    return off
-  }, [on])
-
   // Build drone_id → booking_id map from today's jobs
-  // We fetch today's jobs here to know which drone is currently in use
   const { data: todayJobs = [] } = useQuery<{
     booking_id: number; service_status: string; drone_id?: number
   }[]>({
@@ -512,7 +495,6 @@ export default function OperatorDronePage() {
             <DroneCard
               key={drone.drone_id}
               drone={drone}
-              telemetry={telemetry[drone.drone_id] ?? null}
               activeBookingId={activeBookings[drone.drone_id] ?? null}
             />
           ))}

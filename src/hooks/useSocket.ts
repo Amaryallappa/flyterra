@@ -1,42 +1,47 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 
-// Runtime override (Cloudflare Tunnel URL) takes priority over build-time env var
-const SOCKET_URL = localStorage.getItem('drone_backend_url') || import.meta.env.VITE_SOCKET_URL || ''
-
-let globalSocket: Socket | null = null
-
-export function useSocket() {
+/**
+ * useSocket: Returns a socket connection.
+ * If a url is provided, it creates a unique connection for that URL.
+ * Otherwise, it uses the global VITE_SOCKET_URL.
+ */
+export function useSocket(url?: string) {
+  const [connected, setConnected] = useState(false)
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
+    const targetUrl = url || import.meta.env.VITE_SOCKET_URL || ''
+    if (!targetUrl) return
+
     const token = localStorage.getItem('access_token')
-    if (!token) return
+    
+    const socket = io(targetUrl, {
+      path: '/socket.io',
+      auth: { token },
+      transports: ['websocket'],
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    })
 
-    if (!globalSocket || !globalSocket.connected) {
-      globalSocket = io(SOCKET_URL, {
-        path: '/socket.io',
-        auth: { token },
-        transports: ['websocket'],
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-      })
-    }
+    socket.on('connect', () => setConnected(true))
+    socket.on('disconnect', () => setConnected(false))
 
-    socketRef.current = globalSocket
+    socketRef.current = socket
+
     return () => {
-      // Don't disconnect on unmount — keep alive for other components
+      socket.disconnect()
     }
-  }, [])
+  }, [url])
 
-  const on = useCallback((event: string, cb: (...args: unknown[]) => void) => {
+  const on = useCallback((event: string, cb: (...args: any[]) => void) => {
     socketRef.current?.on(event, cb)
     return () => { socketRef.current?.off(event, cb) }
   }, [])
 
-  const emit = useCallback((event: string, ...args: unknown[]) => {
+  const emit = useCallback((event: string, ...args: any[]) => {
     socketRef.current?.emit(event, ...args)
   }, [])
 
-  return { socket: socketRef.current, on, emit }
+  return { socket: socketRef.current, connected, on, emit }
 }

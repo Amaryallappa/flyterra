@@ -9,6 +9,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,SUPABASE_URL,VITE_SOCKET_URL"
 
 # Rewrite /api/* to Netlify serverless functions
 [[redirects]]

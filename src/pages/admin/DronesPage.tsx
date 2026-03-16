@@ -218,7 +218,7 @@ function DroneLiveModal({ drone, onClose }: { drone: Drone; onClose: () => void 
   const [confirmCmd, setConfirmCmd] = useState<null | { label: string; fn: () => void }>(null)
   const [videoError, setVideoError] = useState(false)
   const [videoFullscreen, setVideoFullscreen] = useState(false)
-  const { on } = useSocket()
+  const { on } = useSocket(drone.drone_companion_url || undefined)
   const videoRef = useRef<HTMLVideoElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
   const videoPanelRef = useRef<HTMLDivElement>(null)
