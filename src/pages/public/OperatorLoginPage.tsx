@@ -14,7 +14,7 @@ const schema = z.object({
 
 type Form = z.infer<typeof schema>
 
-export default function LoginPage() {
+export default function OperatorLoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [showPwd, setShowPwd] = useState(false)
@@ -25,26 +25,33 @@ export default function LoginPage() {
 
   const onSubmit = async (data: Form) => {
     try {
-      await login(data.email, data.password, 'Farmer')
-      toast.success('Welcome back!')
-      navigate('/farmer')
+      await login(data.email, data.password, 'Operator')
+      toast.success('Operator Access Granted')
+      navigate('/operator')
     } catch (err: any) {
-      toast.error(err.message || 'Invalid email or password')
+      toast.error(err.message || 'Invalid operator credentials')
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-900 to-brand-700 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-indigo-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
             <img src="/drone-icon.svg" alt="FLYTERRA" className="w-10 h-10 object-contain brightness-200" />
             <span className="text-white font-bold text-2xl tracking-wider">FLYTERRA</span>
           </Link>
-          <p className="text-brand-200 mt-2">Sign in to your account</p>
+          <p className="text-blue-200 mt-2 font-medium">Operator Control Portal</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-white/20">
+          <div className="mb-6 text-center">
+            <div className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
+              Operator Sign In
+            </div>
+            <p className="text-sm text-gray-500">Access your deployment dashboard</p>
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -53,7 +60,7 @@ export default function LoginPage() {
                   {...register('email')} 
                   type="email" 
                   className="input pl-10" 
-                  placeholder="ramesh@example.com" 
+                  placeholder="operator@flyterra.com" 
                   autoComplete="email" 
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -68,7 +75,7 @@ export default function LoginPage() {
                   {...register('password')} 
                   type={showPwd ? 'text' : 'password'} 
                   className="input pl-10 pr-10" 
-                  placeholder="Your password" 
+                  placeholder="••••••••" 
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <button 
@@ -85,18 +92,15 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={isSubmitting} 
-              className="btn-primary w-full py-2.5 mt-2"
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              {isSubmitting ? 'Signing in…' : 'Sign In'}
+              {isSubmitting ? 'Verifying...' : 'Access Console'}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4">
-            <p className="text-center text-sm text-gray-500">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-brand-600 font-medium hover:underline">Register now</Link>
-            </p>
-          </div>
+          <p className="text-center text-xs text-gray-400 mt-8">
+            Restricted access for authorized personnel only.
+          </p>
         </div>
       </div>
     </div>

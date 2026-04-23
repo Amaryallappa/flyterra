@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { authApi, UserProfile } from '@/api/auth'
+import { supabase } from '@/api/supabase'
 
 interface AuthContextType {
   user: UserProfile | null
@@ -32,9 +33,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refresh()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, requiredRole: 'Farmer' | 'Operator' | 'Admin') => {
     await authApi.login({ email, password })
-    await refresh()
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Failed to retrieve session')
+
+    // Fetch profile early to validate role before updating state
+    const profile = await authApi.me()
+    if (!profile || profile.role !== requiredRole) {
+      await authApi.logout()
+      throw new Error(`Unauthorized: This account is not a ${requiredRole}`)
+    }
+
+    setUser(profile)
   }
 
   const logout = async () => {

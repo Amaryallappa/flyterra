@@ -4,43 +4,27 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 // Public pages
 import LandingPage    from '@/pages/public/LandingPage'
 import LoginPage      from '@/pages/public/LoginPage'
+import OperatorLoginPage from '@/pages/public/OperatorLoginPage'
+import AdminLoginPage from '@/pages/public/AdminLoginPage'
 import RegisterPage   from '@/pages/public/RegisterPage'
 
-// Farmer pages
-import FarmerLayout   from '@/pages/farmer/FarmerLayout'
-import FarmerDashboard from '@/pages/farmer/FarmerDashboard'
-import FieldsPage     from '@/pages/farmer/FieldsPage'
-import AddFieldPage   from '@/pages/farmer/AddFieldPage'
-import BookServicePage from '@/pages/farmer/BookServicePage'
-import BookingsPage   from '@/pages/farmer/BookingsPage'
-import BookingDetailPage from '@/pages/farmer/BookingDetailPage'
-import ProfilePage    from '@/pages/farmer/ProfilePage'
+// ... (farmer imports)
 
-// Operator pages
-import OperatorLayout    from '@/pages/operator/OperatorLayout'
-import OperatorDashboard from '@/pages/operator/OperatorDashboard'
-import FieldVerifyPage   from '@/pages/operator/FieldVerifyPage'
-import OperatorJobsPage   from '@/pages/operator/OperatorJobsPage'
-import OperatorDronePage  from '@/pages/operator/OperatorDronePage'
+// ... (operator imports)
 
-// Admin pages
-import AdminLayout    from '@/pages/admin/AdminLayout'
-import AdminDashboard from '@/pages/admin/AdminDashboard'
-import StationsPage   from '@/pages/admin/StationsPage'
-import DronesPage     from '@/pages/admin/DronesPage'
-import BatteriesPage  from '@/pages/admin/BatteriesPage'
-import UsersPage      from '@/pages/admin/UsersPage'
-import OperatorsPage  from '@/pages/admin/OperatorsPage'
-import SettingsPage        from '@/pages/admin/SettingsPage'
-import AdminBookingsPage   from '@/pages/admin/AdminBookingsPage'
-import FarmersPage         from '@/pages/admin/FarmersPage'
-import FarmerDetailPage    from '@/pages/admin/FarmerDetailPage'
+// ... (admin imports)
 
-function RoleGuard({ roles, children }: { roles: string[]; children: React.ReactNode }) {
+function RoleGuard({ roles, children, loginPath = "/login" }: { roles: string[]; children: React.ReactNode, loginPath?: string }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" /></div>
-  if (!user) return <Navigate to="/login" replace />
-  if (!roles.includes(user.role)) return <Navigate to="/" replace />
+  if (!user) return <Navigate to={loginPath} replace />
+  if (!roles.includes(user.role)) {
+    // If logged in but wrong role for this specific area, redirect to the correct dashboard
+    if (user.role === 'Farmer') return <Navigate to="/farmer" replace />
+    if (user.role === 'Operator') return <Navigate to="/operator" replace />
+    if (user.role === 'Admin') return <Navigate to="/admin" replace />
+    return <Navigate to="/" replace />
+  }
   return <>{children}</>
 }
 
@@ -65,8 +49,12 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<AuthRedirect />} />
 
+          {/* Role-specific login pages outside protected areas for convenience */}
+          <Route path="/operator/login" element={<OperatorLoginPage />} />
+          <Route path="/admin/login"    element={<AdminLoginPage />} />
+
           {/* Farmer */}
-          <Route path="/farmer" element={<RoleGuard roles={['Farmer']}><FarmerLayout /></RoleGuard>}>
+          <Route path="/farmer" element={<RoleGuard roles={['Farmer']} loginPath="/login"><FarmerLayout /></RoleGuard>}>
             <Route index                    element={<FarmerDashboard />} />
             <Route path="fields"            element={<FieldsPage />} />
             <Route path="fields/new"        element={<AddFieldPage />} />
@@ -77,7 +65,7 @@ export default function App() {
           </Route>
 
           {/* Operator */}
-          <Route path="/operator" element={<RoleGuard roles={['Operator']}><OperatorLayout /></RoleGuard>}>
+          <Route path="/operator" element={<RoleGuard roles={['Operator']} loginPath="/operator/login"><OperatorLayout /></RoleGuard>}>
             <Route index                    element={<OperatorDashboard />} />
             <Route path="fields"            element={<FieldVerifyPage />} />
             <Route path="jobs"              element={<OperatorJobsPage />} />
@@ -85,7 +73,7 @@ export default function App() {
           </Route>
 
           {/* Admin */}
-          <Route path="/admin" element={<RoleGuard roles={['Admin']}><AdminLayout /></RoleGuard>}>
+          <Route path="/admin" element={<RoleGuard roles={['Admin']} loginPath="/admin/login"><AdminLayout /></RoleGuard>}>
             <Route index                    element={<AdminDashboard />} />
             <Route path="stations"          element={<StationsPage />} />
             <Route path="drones"            element={<DronesPage />} />
