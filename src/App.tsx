@@ -8,11 +8,35 @@ import OperatorLoginPage from '@/pages/public/OperatorLoginPage'
 import AdminLoginPage from '@/pages/public/AdminLoginPage'
 import RegisterPage   from '@/pages/public/RegisterPage'
 
-// ... (farmer imports)
+// Farmer pages
+import FarmerLayout   from '@/pages/farmer/FarmerLayout'
+import FarmerDashboard from '@/pages/farmer/FarmerDashboard'
+import FieldsPage     from '@/pages/farmer/FieldsPage'
+import AddFieldPage   from '@/pages/farmer/AddFieldPage'
+import BookServicePage from '@/pages/farmer/BookServicePage'
+import BookingsPage   from '@/pages/farmer/BookingsPage'
+import BookingDetailPage from '@/pages/farmer/BookingDetailPage'
+import ProfilePage    from '@/pages/farmer/ProfilePage'
 
-// ... (operator imports)
+// Operator pages
+import OperatorLayout    from '@/pages/operator/OperatorLayout'
+import OperatorDashboard from '@/pages/operator/OperatorDashboard'
+import FieldVerifyPage   from '@/pages/operator/FieldVerifyPage'
+import OperatorJobsPage   from '@/pages/operator/OperatorJobsPage'
+import OperatorDronePage  from '@/pages/operator/OperatorDronePage'
 
-// ... (admin imports)
+// Admin pages
+import AdminLayout    from '@/pages/admin/AdminLayout'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import StationsPage   from '@/pages/admin/StationsPage'
+import DronesPage     from '@/pages/admin/DronesPage'
+import BatteriesPage  from '@/pages/admin/BatteriesPage'
+import UsersPage      from '@/pages/admin/UsersPage'
+import OperatorsPage  from '@/pages/admin/OperatorsPage'
+import SettingsPage        from '@/pages/admin/SettingsPage'
+import AdminBookingsPage   from '@/pages/admin/AdminBookingsPage'
+import FarmersPage         from '@/pages/admin/FarmersPage'
+import FarmerDetailPage    from '@/pages/admin/FarmerDetailPage'
 
 function RoleGuard({ roles, children, loginPath = "/login" }: { roles: string[]; children: React.ReactNode, loginPath?: string }) {
   const { user, loading } = useAuth()
