@@ -22,10 +22,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
-            <span className="font-bold text-xl text-gray-900">AgriDrone</span>
+            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain" />
+            <span className="font-bold text-xl text-gray-900 tracking-wider">FLYTERRA</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-brand-600">Features</a>
@@ -40,16 +38,16 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-brand-900 via-brand-800 to-brand-700 text-white overflow-hidden">
+      <section className="relative bg-gradient-to-br from-brand-900 via-brand-800 to-brand-600 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-36 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 text-sm mb-6">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span className="w-2 h-2 bg-brand-300 rounded-full animate-pulse" />
             Serving farmers across India
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
             Precision Drone Spraying<br />
-            <span className="text-green-300">Delivered to Your Field</span>
+            <span className="text-brand-300">Delivered to Your Field</span>
           </h1>
           <p className="text-lg md:text-xl text-brand-100 max-w-2xl mx-auto mb-10">
             Book autonomous pesticide spraying from your phone. 10× faster than manual.
@@ -80,7 +78,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Why AgriDrone?</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Why FLYTERRA?</h2>
             <p className="text-gray-500 mt-3 max-w-xl mx-auto">Everything you need for modern precision agriculture.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -124,13 +122,13 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Transparent Pricing</h2>
           <p className="text-brand-200 mb-8">Pay per acre. No hidden fees. Price varies by drone model and chemical.</p>
-          <div className="inline-block bg-white/10 backdrop-blur rounded-2xl px-12 py-8">
-            <div className="text-5xl font-extrabold">₹250</div>
-            <div className="text-brand-200 mt-1">per acre · incl. chemicals</div>
+          <div className="inline-block bg-white/10 backdrop-blur rounded-2xl px-12 py-10">
+            <h3 className="text-2xl font-bold mb-2">Pay Per Acre</h3>
+            <p className="text-brand-200 text-sm mb-6">Price calculated dynamically based on location & drone</p>
             <div className="mt-6 space-y-2 text-sm text-brand-100">
               {['Pesticide / Fertilizer spraying', 'QGC-precise coverage', 'Live tracking included', 'Same-day booking available'].map((f) => (
                 <div key={f} className="flex items-center gap-2 justify-center">
-                  <CheckCircle size={14} className="text-green-400" /> {f}
+                  <CheckCircle size={14} className="text-brand-300" /> {f}
                 </div>
               ))}
             </div>
@@ -145,10 +143,10 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-brand-600 rounded-lg" />
-            <span className="font-bold text-white">AgriDrone</span>
+            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-7 h-7 object-contain brightness-200" />
+            <span className="font-bold text-white tracking-wider">FLYTERRA</span>
           </div>
-          <p className="text-sm">© {new Date().getFullYear()} AgriDrone. All rights reserved.</p>
+          <p className="text-sm">© {new Date().getFullYear()} FLYTERRA. All rights reserved.</p>
           <div className="flex gap-6 text-sm">
             <a href="#" className="hover:text-white">Privacy</a>
             <a href="#" className="hover:text-white">Terms</a>

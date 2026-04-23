@@ -116,6 +116,7 @@ export const adminApi = {
       price_per_acre: Number(d.price_per_acre) || 550,
       daily_start_time: d.daily_start_time || '06:00',
       daily_end_time: d.daily_end_time || '18:00',
+      area_per_refill: Number(d.area_per_refill) || 10,
     }).select().single()
     if (error) {
       console.error('Supabase error creating station:', error)
@@ -148,6 +149,7 @@ export const adminApi = {
     if (d.price_per_acre !== undefined) patch.price_per_acre = Number(d.price_per_acre)
     if (d.daily_start_time !== undefined) patch.daily_start_time = d.daily_start_time
     if (d.daily_end_time !== undefined) patch.daily_end_time = d.daily_end_time
+    if (d.area_per_refill !== undefined) patch.area_per_refill = Number(d.area_per_refill)
 
     const { error } = await supabase.from('base_stations').update(patch).eq('station_id', id)
     if (error) throw new Error(error.message)
@@ -406,16 +408,6 @@ export const adminApi = {
   releaseBooking: async (id: number) => {
     const { error } = await supabase.from('bookings').update({ service_status: 'Confirmed' }).eq('booking_id', id)
     if (error) throw new Error(error.message)
-  },
-
-  // ── Drone commands (companion PC — keep for future) ───────────────────────
-
-  sendDroneCommand: async (
-    _droneId: number,
-    _command: string,
-    _params?: { param1?: number; param2?: number; mode?: string },
-  ) => {
-    throw new Error('Drone command requires companion PC connection. Set drone_backend_url in settings.')
   },
 
   // ── Farmers ───────────────────────────────────────────────────────────────

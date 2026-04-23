@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drone GCS — Professional</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════ RESET & TOKENS ═══════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --bg: #ffffff;
+      --s1: #f5f5f5;
+      --s2: #e0e0e0;
+      --s3: #d0d0d0;
+      --border: #c0c0c0;
+      --border2: #b0b0b0;
+      --text: #222222;
+      --muted: #555555;
+      --dim: #777777;
+      --blue: #1e88e5;
+      --blue-d: #1565c0;
+      --green: #43a047;
+      --green-d: #2e7d32;
+      --yellow: #fdd835;
+      --yellow-d: #c0a000;
+      --red: #e53935;
+      --red-d: #b71c1c;
+      --orange: #fb8c00;
+      --purple: #8e24aa;
+      --cyan: #00acc1;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+      --r: 6px;
+      --r-lg: 10px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px
+    }
+
+    /* ═══════════════════════════ LAYOUT ════════════════════════════════════ */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      min-height: 42px;
+      height: auto;
+      padding: 4px 12px;
+      background: var(--s1);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: var(--blue);
+      margin-right: 4px
+    }
+
+    .logo span {
+      color: var(--text)
+    }
+
+    .tab-btn {
+      padding: 4px 12px;
+      border-radius: var(--r);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      letter-spacing: .3px;
+    }
+
+    .tab-btn.active {
+      background: var(--blue-d);
+      color: var(--blue);
+      border-color: rgba(74, 158, 255, .3)
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: var(--s2);
+      color: var(--text)
+    }
+
+    .topbar-status {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-left: auto;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: .3px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pill-green {
+      background: rgba(61, 214, 140, .12);
+      color: var(--green);
+      border-color: rgba(61, 214, 140, .25)
+    }
+
+    .pill-red {
+      background: rgba(255, 87, 87, .12);
+      color: var(--red);
+      border-color: rgba(255, 87, 87, .25)
+    }
+
+    .pill-yellow {
+      background: rgba(245, 197, 66, .12);
+      color: var(--yellow);
+      border-color: rgba(245, 197, 66, .25)
+    }
+
+    .pill-blue {
+      background: rgba(74, 158, 255, .12);
+      color: var(--blue);
+      border-color: rgba(74, 158, 255, .25)
+    }
+
+    .pill-muted {
+      background: var(--s2);
+      color: var(--muted);
+      border-color: var(--border)
+    }
+
+    /* Video Side Bar */
+    .video-side-bar {
+      width: 38px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+      gap: 15px;
+      border-right: 1px solid #333;
+      flex-shrink: 0;
+    }
+
+    .vid-btn {
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .vid-btn:hover {
+      color: #fff;
+      transform: scale(1.1);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block
+    }
+
+    .dot-green {
+      background: var(--green);
+      box-shadow: 0 0 5px var(--green)
+    }
+
+    .dot-red {
+      background: var(--red)
+    }
+
+    .dot-yellow {
+      background: var(--yellow);
+      box-shadow: 0 0 5px var(--yellow)
+    }
+
+    .dot-blink {
+      animation: blink 1s infinite
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .2
+      }
+    }
+
+    /* VIEWS */
+    .view {
+      display: none;
+      flex: 1;
+      overflow: hidden
+    }
+
+    .view.active {
+      display: flex
+    }
+
+    /* ═══════════════════ FLIGHT DATA VIEW ══════════════════════════════════ */
+    #view-flight {
+      flex-direction: column
+    }
+
+    .tstrip {
+      display: flex;
+      align-items: stretch;
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      height: 58px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+    }
+
+    .tstrip::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .tstrip::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px;
+    }
+
+    .ts-cell {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4px 10px;
+      background: var(--s1);
+      cursor: default;
+      min-width: 90px;
+    }
+
+    .ts-cell:hover {
+      background: var(--s2)
+    }
+
+    .ts-lbl {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 3px
+    }
+
+    .ts-val {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      line-height: 1;
+      color: var(--text)
+    }
+
+    .ts-unit {
+      font-size: 10px;
+      color: var(--muted);
+      margin-left: 2px;
+      font-weight: 400
+    }
+
+    .ts-cell.warn .ts-val {
+      color: var(--yellow)
+    }
+
+    .ts-cell.danger .ts-val {
+      color: var(--red)
+    }
+
+    .bat-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center
+    }
+
+    .bat-row {
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .bat-bar {
+      flex: 1;
+      height: 5px;
+      background: var(--s3);
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 60px
+    }
+
+    .bat-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .6s
+    }
+
+    .flight-main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 0
+    }
+
+    /* Left: controls panel */
+    .ctrl-panel {
+      width: 210px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: var(--s1);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      border-bottom: 1px solid var(--border);
+      padding: 10px
+    }
+
+    .panel-title {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 8px
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px
+    }
+
+    .cbtn {
+      padding: 7px 4px;
+      border-radius: var(--r);
+      border: 1px solid var(--border2);
+      background: var(--s2);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+
+    .cbtn:hover:not(:disabled) {
+      filter: brightness(1.3);
+      transform: translateY(-1px)
+    }
+
+    .cbtn:active:not(:disabled) {
+      transform: translateY(0)
+    }
+
+    .cbtn:disabled {
+      opacity: .3;
+      cursor: not-allowed
+    }
+
+    .cbtn.full {
+      grid-column: 1/-1
+    }
+
+    .cbtn.arm {
+      border-color: rgba(61, 214, 140, .5);
+      color: var(--green);
+      background: rgba(61, 214, 140, .08)
+    }
+
+    .cbtn.disarm {
+      border-color: rgba(245, 197, 66, .5);
+      color: var(--yellow);
+      background: rgba(245, 197, 66, .06)
+    }
+
+    .cbtn.kill {
+      border-color: rgba(255, 87, 87, .5);
+      color: var(--red);
+      background: rgba(255, 87, 87, .08)
+    }
+
+    .cbtn.takeoff {
+      border-color: rgba(74, 158, 255, .5);
+      color: var(--blue);
+      background: rgba(74, 158, 255, .08)
+    }
+
+    .cbtn.start-mission {
+      border-color: rgba(167, 139, 250, .5);
+      color: var(--purple);
+      background: rgba(167, 139, 250, .08);
+    }
+
+    .mode-select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: var(--r);
+      background: var(--s2);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mode-select:focus {
+      outline: none;
+      border-color: var(--blue)
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px
+    }
+
+    .slider-row label {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 28px
+    }
+
+    .slider-row input[type=range] {
+      flex: 1
+    }
+
+    .slider-row span {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      min-width: 34px;
+      text-align: right;
+      color: var(--blue)
+    }
+
+    .hud-wrap {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px
+    }
+
+    #hud-canvas {
+      border-radius: 50%;
+      border: 2px solid var(--border2)
+    }
+
+    .hud-footer {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 2px;
+    }
+
+    .map-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden
+    }
+
+    #flight-map {
+      width: 100%;
+      height: 100%
+    }
+
+    /* Right: video + log */
+    .right-panel {
+      width: 340px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--s1);
+      border-left: 1px solid var(--border);
+    }
+
+    .video-container {
+      display: flex;
+      background: #000;
+      border-bottom: 1px solid var(--border);
+      height: 200px;
+      flex-shrink: 0;
+    }
+
+    .video-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .video-box video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .vid-overlay {
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .vid-latency {
+      background: rgba(0, 0, 0, .7);
+      color: var(--red);
+      font-size: 10px;
+      font-family: var(--font-mono);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .log-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .log-header {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+    }
+
+    .log-console {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 6px;
+      padding: 2px 10px
+    }
+
+    .log-line:hover {
+      background: var(--s2)
+    }
+
+    .log-ts {
+      color: var(--dim);
+      white-space: nowrap;
+      min-width: 54px
+    }
+
+    .log-INFO {
+      color: var(--blue);
+      min-width: 36px
+    }
+
+    .log-WARN {
+      color: var(--yellow);
+      min-width: 36px
+    }
+
+    .log-ERROR {
+      color: var(--red);
+      min-width: 36px
+    }
+
+    .log-msg {
+      color: var(--text)
+    }
+
+    /* ═══════════════════ MISSION PLANNER VIEW ════════════════════════════ */
+    #view-mission {
+      flex-direction: row
+    }
+
+    .mission-map-wrap {
+      flex: 1;
+      position: relative
+    }
+
+    #mission-map {
+      width: 100%;
+      height: 100%
+    }
+
+    .mission-toolbar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 500;
+      background: rgba(11, 14, 20, .92);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-lg);
+      padding: 6px 10px;
+    }
+
+    .tbtn {
+      padding: 5px 12px;
+      border-radius: var(--r);
+      border: 1px solid var(--border2);
+      background: var(--s2);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .tbtn:hover {
+      filter: brightness(1.3)
+    }
+
+    .tbtn.active {
+      background: var(--blue-d);
+      color: var(--blue);
+      border-color: rgba(74, 158, 255, .4)
+    }
+
+    .tbtn.green {
+      border-color: rgba(61, 214, 140, .4);
+      color: var(--green);
+      background: rgba(61, 214, 140, .08)
+    }
+
+    .tbtn.red {
+      border-color: rgba(255, 87, 87, .4);
+      color: var(--red);
+      background: rgba(255, 87, 87, .08)
+    }
+
+    .tbtn.purple {
+      border-color: rgba(167, 139, 250, .4);
+      color: var(--purple);
+      background: rgba(167, 139, 250, .08)
+    }
+
+    .mission-stats {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 500;
+      background: rgba(11, 14, 20, .9);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-lg);
+      padding: 8px 14px;
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px
+    }
+
+    .stat-lbl {
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .stat-val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--blue)
+    }
+
+    .mission-panel {
+      width: 360px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--s1);
+      border-left: 1px solid var(--border);
+    }
+
+    .mission-panel-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mission-panel-header span {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0
+    }
+
+    .wp-table-wrap {
+      flex: 1;
+      overflow-y: auto
+    }
+
+    .wp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px
+    }
+
+    .wp-table thead tr {
+      background: var(--s2)
+    }
+
+    .wp-table th {
+      padding: 6px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+
+    .wp-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .1s
+    }
+
+    .wp-table tbody tr:hover {
+      background: var(--s2)
+    }
+
+    .wp-table tbody tr.active-wp {
+      background: rgba(74, 158, 255, .12);
+      border-left: 2px solid var(--blue)
+    }
+
+    .wp-table td {
+      padding: 5px 6px;
+      vertical-align: middle
+    }
+
+    .wp-seq {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      background: var(--blue-d);
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    input.wp-inline {
+      width: 100%;
+      background: var(--s3);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 2px 4px;
+    }
+
+    input.wp-inline:focus {
+      outline: none;
+      border-color: var(--blue)
+    }
+
+    .wp-del-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: var(--dim)
+    }
+
+    .wp-del-btn:hover {
+      color: var(--red)
+    }
+
+    /* Settings modal */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .8);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-bg.open {
+      display: flex
+    }
+
+    .modal {
+      background: var(--s1);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      width: 400px;
+      max-width: 95vw;
+    }
+
+    .modal h2 {
+      font-size: 15px;
+      margin-bottom: 16px;
+      color: var(--text)
+    }
+
+    .mform-group {
+      margin-bottom: 12px
+    }
+
+    .mform-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px
+    }
+
+    .mform-group input,
+    .mform-group select {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      color: var(--text);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .mform-group input:focus {
+      outline: none;
+      border-color: var(--blue)
+    }
+
+    .mform-group small {
+      font-size: 10px;
+      color: var(--dim);
+      margin-top: 3px;
+      display: block
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 18px
+    }
+
+    .modal-btn {
+      padding: 7px 18px;
+      border-radius: var(--r);
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .modal-btn.save {
+      background: var(--blue);
+      border: none;
+      color: #fff
+    }
+
+    .modal-btn.cancel {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--muted)
+    }
+
+    /* Leaflet overrides */
+    .leaflet-control-zoom {
+      border: 1px solid var(--border2) !important;
+      box-shadow: none !important
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--s1) !important;
+      color: var(--text) !important;
+      border-bottom: 1px solid var(--border2) !important
+    }
+
+    .leaflet-control-zoom a:hover {
+      background: var(--s2) !important
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--s1);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: var(--r)
+    }
+
+    .leaflet-popup-tip {
+      background: var(--s1)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <div class="topbar">
+      <div class="logo">DRONE<span>GCS</span></div>
+      <button class="tab-btn active" onclick="switchTab('flight')" id="tab-flight">✈ Flight Data</button>
+      <button class="tab-btn" onclick="switchTab('mission')" id="tab-mission">📍 Mission Planner</button>
+
+      <div class="topbar-status">
+        <span class="pill pill-muted" id="p-rtc"><span class="dot dot-red"></span> WebRTC Offline</span>
+        <span class="pill pill-muted" id="p-mav">MAVLink –</span>
+        <span class="pill pill-muted" id="p-mode">Mode –</span>
+        <span class="pill pill-muted" id="p-armed">Disarmed</span>
+        <span class="pill pill-muted" id="p-bat">Bat –</span>
+        <span class="pill pill-muted" id="p-gps">GPS –</span>
+        <button class="tbtn" onclick="openSettings()" style="padding:3px 10px;font-size:11px">⚙</button>
+      </div>
+    </div>
+
+    <div class="view active" id="view-flight">
+
+      <div style="flex-shrink:0">
+        <div class="tstrip" id="tstrip">
+          <div class="ts-cell">
+            <div class="ts-lbl">Altitude (rel)</div>
+            <div class="ts-val" id="v-alt">–<span class="ts-unit">m</span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">Alt MSL</div>
+            <div class="ts-val" id="v-alt-msl">–<span class="ts-unit">m</span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">Gnd Speed</div>
+            <div class="ts-val" id="v-speed">–<span class="ts-unit">m/s</span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">Climb</div>
+            <div class="ts-val" id="v-climb">–<span class="ts-unit">m/s</span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">Heading</div>
+            <div class="ts-val" id="v-hdg">–<span class="ts-unit">°</span></div>
+          </div>
+          <div class="ts-cell" id="tc-bat">
+            <div class="ts-lbl">Battery <span id="v-bat-pct" style="float:right;font-weight:700"></span></div>
+            <div class="bat-strip">
+              <div class="bat-row">
+                <div class="bat-bar">
+                  <div class="bat-fill" id="bat-fill" style="width:0%;background:var(--green)"></div>
+                </div>
+                <span class="ts-unit" id="v-bat-v">–V</span>
+              </div>
+            </div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">RSSI</div>
+            <div class="ts-val" id="v-rssi">–<span class="ts-unit"></span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">GPS Sats</div>
+            <div class="ts-val" id="v-sats">–</div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">WP / Dist</div>
+            <div class="ts-val" id="v-wp">–<span class="ts-unit">m</span></div>
+          </div>
+          <div class="ts-cell">
+            <div class="ts-lbl">Throttle</div>
+            <div class="ts-val" id="v-thr">–<span class="ts-unit">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flight-main">
+
+        <div class="ctrl-panel">
+          <div class="panel-section">
+            <div class="panel-title">Flight Controls</div>
+            <div class="btn-grid">
+              <button class="cbtn arm full" onclick="cmd('arm')">▶ ARM</button>
+              <button class="cbtn disarm" onclick="cmd('disarm')">■ Disarm</button>
+              <button class="cbtn kill" onclick="confirmKill()">⚡ KILL</button>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Flight Mode</div>
+            <select class="mode-select" id="mode-select" onchange="setMode(this.value)">
+              <option value="">— select mode —</option>
+              <option value="STABILIZE">STABILIZE</option>
+              <option value="ACRO">ACRO</option>
+              <option value="ALTHOLD">ALT HOLD</option>
+              <option value="LOITER">LOITER</option>
+              <option value="POSHOLD">POS HOLD</option>
+              <option value="AUTO">AUTO (Mission)</option>
+              <option value="GUIDED">GUIDED</option>
+              <option value="RTL">RTL</option>
+              <option value="LAND">LAND</option>
+            </select>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Navigation</div>
+            <div class="slider-row">
+              <label>Alt</label>
+              <input type="range" id="sl-alt" min="2" max="100" value="15" step="1"
+                oninput="document.getElementById('sv-alt').textContent=this.value+'m'">
+              <span id="sv-alt">15m</span>
+            </div>
+            <div class="btn-grid" style="margin-top:8px">
+              <button class="cbtn takeoff full" onclick="cmdTakeoff()">↑ TAKEOFF</button>
+              <button class="cbtn" onclick="cmd('land')">↓ LAND</button>
+              <button class="cbtn" style="border-color:rgba(245,197,66,.5);color:var(--yellow)" onclick="cmd('rtl')">⟲ RTL</button>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-title">Artificial Horizon</div>
+            <div class="hud-wrap">
+              <canvas id="hud-canvas" width="186" height="186"></canvas>
+              <div class="hud-footer">
+                <span id="h-roll">R: 0°</span>
+                <span id="h-pitch">P: 0°</span>
+                <span id="h-yaw">Y: 0°</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section" style="border-bottom:none">
+            <div class="panel-title">GPS Detail</div>
+            <div style="font-size:11px;font-family:var(--font-mono);line-height:2;color:var(--muted)">
+              <div>Lat: <span id="d-lat" style="color:var(--text)">–</span></div>
+              <div>Lon: <span id="d-lon" style="color:var(--text)">–</span></div>
+              <div>Fix: <span id="d-fix" style="color:var(--text)">–</span></div>
+              <div>HDOP: <span id="d-hdop" style="color:var(--text)">–</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-wrap">
+          <div id="flight-map"></div>
+        </div>
+
+        <div class="right-panel">
+
+          <div class="video-container">
+            <div class="video-side-bar">
+              <button class="vid-btn" title="Toggle HUD">🛰</button>
+              <button class="vid-btn" title="Record Stream">⏺</button>
+              <button class="vid-btn" title="Fullscreen" onclick="toggleFullscreen()">⛶</button>
+              <button class="vid-btn" title="Settings" onclick="openSettings()">🛠</button>
+            </div>
+            <div class="video-box" id="video-box">
+              <video id="drone-video" autoplay playsinline muted></video>
+              <div class="vid-overlay">
+                <div class="vid-latency" id="vid-latency">WebRTC ● Video</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="log-wrap">
+            <div class="log-header">
+              Flight Log
+              <button onclick="clearLog()"
+                style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px">Clear</button>
+            </div>
+            <div class="log-console" id="log-console"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="view" id="view-mission">
+      <div class="mission-map-wrap">
+        <div id="mission-map"></div>
+        <div class="mission-toolbar">
+          <button class="tbtn" id="tb-wp" onclick="setDrawMode('wp')">+ Waypoint</button>
+          <div style="width:1px;background:var(--border2);margin:0 2px"></div>
+
+          <button class="tbtn purple" id="tb-poly" onclick="setDrawMode('poly')">⬡ Draw Boundary</button>
+          <button class="tbtn" onclick="clearPolygon()">✕ Clear Boundary</button>
+
+          <div style="width:1px;background:var(--border2);margin:0 2px"></div>
+
+          <button class="tbtn" onclick="triggerImport()">📁 Load File</button>
+          <button class="tbtn" onclick="exportWaypointsFile()">💾 Save File</button>
+          <input type="file" id="file-import" style="display:none" accept=".waypoints,.txt"
+            onchange="handleFileImport(event)">
+
+          <div style="width:1px;background:var(--border2);margin:0 2px"></div>
+          <button class="tbtn green" onclick="uploadMission()">↑ Upload to Drone</button>
+          <button class="tbtn" onclick="downloadMission()">↓ Download from Drone</button>
+          <button class="tbtn red" onclick="clearMissionLocal()">✕ Clear All</button>
+          <button class="tbtn purple" onclick="startMission()">▶ Start Mission</button>
+        </div>
+
+        <div class="mission-stats" style="bottom:auto;top:50px;left:10px;flex-direction:column;gap:10px;display:none;"
+          id="ag-panel">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px;">Grid Parameters</div>
+          <div class="stat">
+            <div class="stat-lbl">Spacing (Swath)</div>
+            <input type="number" id="grid-space" value="5" step="0.5" class="wp-inline" style="width:100%"
+              onchange="generateGrid()">
+          </div>
+          <div class="stat">
+            <div class="stat-lbl">Angle (Degrees)</div>
+            <input type="number" id="grid-angle" value="0" step="5" class="wp-inline" style="width:100%"
+              onchange="generateGrid()">
+          </div>
+          <div class="stat">
+            <div class="stat-lbl">Altitude (m)</div>
+            <input type="number" id="grid-alt" value="10" step="1" class="wp-inline" style="width:100%"
+              onchange="generateGrid()">
+          </div>
+          <button class="tbtn active" style="margin-top:5px" onclick="generateGrid()">↻ Recalculate</button>
+        </div>
+      </div>
+
+      <div class="mission-panel">
+        <div class="mission-panel-header">
+          Mission Waypoints
+          <span id="mp-status">0 items</span>
+        </div>
+        <div class="wp-table-wrap">
+          <table class="wp-table">
+            <thead>
+              <tr>
+                <th style="width:28px">#</th>
+                <th>Cmd</th>
+                <th>Lat</th>
+                <th>Lon</th>
+                <th>Alt</th>
+                <th>Speed</th>
+                <th style="width:30px"></th>
+              </tr>
+            </thead>
+            <tbody id="wp-tbody"></tbody>
+          </table>
+        </div>
+        <div style="padding:8px 12px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)"
+          id="mission-log">
+          Ready — click on map to add waypoints
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="modal">
+    <div class="modal">
+      <h2>⚙ Connection Settings</h2>
+      <div class="mform-group">
+        <label>Backend URL (Drone Companion PC / Cloudflare Tunnel)</label>
+        <input id="cfg-url" value="http://localhost:8000" spellcheck="false" />
+        <small>WebRTC signaling, commands, and mission endpoints live here.</small>
+      </div>
+      <div class="mform-group">
+        <label>Map Layer</label>
+        <select id="cfg-map">
+          <option value="esri-satellite">Esri Satellite (default)</option>
+          <option value="osm">OpenStreetMap</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn cancel" onclick="closeSettings()">Cancel</button>
+        <button class="modal-btn save" onclick="saveSettings()">Save & Connect</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── Config: read URL params first, then localStorage fallback ──────────────
+    const _urlParams = new URLSearchParams(location.search);
+    let cfg = JSON.parse(localStorage.getItem('drone_gcs_v2') || '{}');
+    // URL params (set by buildGcsUrl in the admin app) take priority
+    if (_urlParams.get('rest')) cfg.url = _urlParams.get('rest');
+    cfg.url = cfg.url || 'http://localhost:8000';
+    cfg.map = _urlParams.get('map') || cfg.map || 'esri-satellite';
+
+    function openSettings() {
+      document.getElementById('cfg-url').value = cfg.url;
+      document.getElementById('cfg-map').value = cfg.map;
+      document.getElementById('modal').classList.add('open');
+    }
+    function closeSettings() { document.getElementById('modal').classList.remove('open'); }
+    function saveSettings() {
+      cfg.url = document.getElementById('cfg-url').value.trim();
+      cfg.map = document.getElementById('cfg-map').value;
+      localStorage.setItem('drone_gcs_v2', JSON.stringify(cfg));
+      closeSettings();
+      location.reload();
+    }
+
+    // ─── Tabs ────────────────────────────────────────────────────────────────────
+    let activeTab = 'flight';
+    function switchTab(t) {
+      activeTab = t;
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('view-' + t).classList.add('active');
+      document.getElementById('tab-' + t).classList.add('active');
+      if (t === 'mission') { missionMap.invalidateSize(); renderWPTable(); }
+      if (t === 'flight') { flightMap.invalidateSize(); }
+    }
+
+    // ─── Log ─────────────────────────────────────────────────────────────────────
+    const logEl = document.getElementById('log-console');
+    function log(level, msg) {
+      const ts = new Date().toLocaleTimeString('en-GB');
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span class="log-ts">${ts}</span><span class="log-${level}">${level}</span><span class="log-msg">${msg}</span>`;
+      logEl.insertBefore(line, logEl.firstChild);
+      if (logEl.children.length > 300) logEl.removeChild(logEl.lastChild);
+    }
+    function clearLog() { logEl.innerHTML = ''; }
+
+    // ─── WebRTC: DataChannel for Telemetry & Commands + Video Track ──────────────
+    let pc = null;
+    let dataChannel = null;
+
+    async function connectWebRTC() {
+      const rtcPill = document.getElementById('p-rtc');
+      rtcPill.innerHTML = '<span class="dot dot-yellow dot-blink"></span> WebRTC Connecting...';
+      rtcPill.className = 'pill pill-yellow';
+
+      pc = new RTCPeerConnection({
+        iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }]
+      });
+
+      // 1. Receive Video Track from drone
+      pc.ontrack = (evt) => {
+        if (evt.track.kind === 'video') {
+          log('INFO', 'WebRTC video track received');
+          document.getElementById('drone-video').srcObject = evt.streams[0];
+          document.getElementById('vid-latency').style.color = 'var(--green)';
+          document.getElementById('vid-latency').textContent = 'WebRTC ● Live';
+        }
+      };
+
+      // 2. DataChannel for bidirectional telemetry + commands
+      dataChannel = pc.createDataChannel('drone-data');
+
+      dataChannel.onopen = () => {
+        rtcPill.innerHTML = '<span class="dot dot-green"></span> WebRTC Connected';
+        rtcPill.className = 'pill pill-green';
+        log('INFO', 'DataChannel open — telemetry and commands active');
+      };
+
+      dataChannel.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          if (msg.type === 'telemetry') {
+            updateUI(msg.data, msg.track || [], msg.mav_ok);
+          } else if (msg.type === 'event') {
+            log(msg.data.level, msg.data.message);
+          } else if (msg.type === 'mission') {
+            // Mission data received from drone download via DataChannel
+            waypoints = (msg.data || []).map((wp, i) => ({
+              seq: i, command: wp.command || 16,
+              lat: wp.lat, lon: wp.lon, alt: wp.alt,
+              param1: wp.param1 || 0, param2: wp.param2 || 0,
+              speed: 5
+            }));
+            renderWPTable();
+            log('INFO', `Mission synced via DataChannel: ${waypoints.length} waypoints`);
+          }
+        } catch (e) { }
+      };
+
+      dataChannel.onclose = () => {
+        rtcPill.innerHTML = '<span class="dot dot-red"></span> WebRTC Disconnected';
+        rtcPill.className = 'pill pill-red';
+        document.getElementById('vid-latency').style.color = 'var(--red)';
+        document.getElementById('vid-latency').textContent = 'WebRTC ● Video';
+        log('WARN', 'WebRTC connection lost — retrying in 5s...');
+        setTimeout(connectWebRTC, 5000);
+      };
+
+      // 3. Negotiate Signaling with /offer endpoint
+      try {
+        pc.addTransceiver('video', { direction: 'recvonly' });
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        const response = await fetch(cfg.url + '/offer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sdp: pc.localDescription.sdp,
+            type: pc.localDescription.type
+          })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const answer = await response.json();
+        await pc.setRemoteDescription(answer);
+        log('INFO', 'WebRTC signaling complete — awaiting DataChannel...');
+
+      } catch (err) {
+        log('ERROR', 'WebRTC signaling failed: ' + err.message);
+        rtcPill.innerHTML = '<span class="dot dot-red"></span> Signaling Failed';
+        rtcPill.className = 'pill pill-red';
+        setTimeout(connectWebRTC, 5000);
+      }
+    }
+
+    // DataChannel heartbeat
+    setInterval(() => {
+      if (dataChannel && dataChannel.readyState === 'open') {
+        dataChannel.send(JSON.stringify({ action: 'ping' }));
+      }
+    }, 3000);
+
+    // ─── Command Sender (via DataChannel) ────────────────────────────────────────
+    function sendCommand(action, payload = {}) {
+      if (dataChannel && dataChannel.readyState === 'open') {
+        dataChannel.send(JSON.stringify({ action, payload }));
+        log('INFO', `Sent: ${action.toUpperCase()}`);
+      } else {
+        log('ERROR', `Cannot send ${action} — DataChannel not open`);
+      }
+    }
+
+    function cmd(action) { sendCommand(action); }
+    function setMode(m) { if (m) sendCommand('mode', { mode: m }); }
+    function cmdTakeoff() {
+      const alt = parseInt(document.getElementById('sl-alt').value, 10) || 15;
+      sendCommand('takeoff', { alt });
+    }
+    function confirmKill() {
+      if (confirm('⚡ EMERGENCY KILL — cut motors immediately?\nThis will drop the drone.')) {
+        sendCommand('kill');
+      }
+    }
+    function toggleFullscreen() {
+      const box = document.getElementById('video-box');
+      if (!document.fullscreenElement) box.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    // ─── Map Initialization ───────────────────────────────────────────────────────
+    const TILES = {
+      'esri-satellite': { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '&copy; Esri' },
+      'osm': { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '&copy; OpenStreetMap' }
+    };
+    const tileConf = TILES[cfg.map] || TILES['esri-satellite'];
+
+    const flightMap = L.map('flight-map', { zoomControl: true }).setView([20, 0], 3);
+    L.tileLayer(tileConf.url, { attribution: tileConf.attr, maxZoom: 21 }).addTo(flightMap);
+
+    const missionMap = L.map('mission-map', { zoomControl: true }).setView([20, 0], 3);
+    L.tileLayer(tileConf.url, { attribution: tileConf.attr, maxZoom: 21 }).addTo(missionMap);
+
+    const droneIcon = L.divIcon({
+      className: '',
+      html: `<div id="drone-icon-el" style="width:26px;height:26px;border-radius:50%;background:rgba(74,158,255,0.95);border:2px solid #fff;display:flex;align-items:center;justify-content:center;transition:transform 0.3s;"><svg width="12" height="12" viewBox="0 0 24 24" fill="white"><polygon points="12,2 22,22 12,17 2,22"/></svg></div>`,
+      iconSize: [26, 26], iconAnchor: [13, 13]
+    });
+
+    let droneMkr = null, mapCentered = false;
+    const trackLine = L.polyline([], { color: '#4a9eff', weight: 2, opacity: 0.7 }).addTo(flightMap);
+
+    flightMap.on('click', e => {
+      const alt = parseInt(document.getElementById('sl-alt').value, 10) || 15;
+      if (confirm(`Fly to:\n${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}\n@ ${alt}m altitude?`)) {
+        sendCommand('goto', { lat: e.latlng.lat, lon: e.latlng.lng, alt });
+      }
+    });
+
+    // ─── Telemetry UI Update ──────────────────────────────────────────────────────
+    let latestData = {};
+
+    function updateUI(d, track, mavOk) {
+      latestData = d;
+
+      // MAVLink status pill
+      const mavPill = document.getElementById('p-mav');
+      if (mavOk) {
+        mavPill.innerHTML = '<span class="dot dot-green"></span> MAVLink OK';
+        mavPill.className = 'pill pill-green';
+      } else {
+        mavPill.innerHTML = '<span class="dot dot-red"></span> MAVLink Lost';
+        mavPill.className = 'pill pill-red';
+      }
+
+      setText('v-alt', fmt(d.alt_rel, 1, 'm'));
+      setText('v-alt-msl', fmt(d.alt_msl, 1, 'm'));
+      setText('v-speed', fmt(d.speed, 1, 'm/s'));
+      setText('v-climb', fmt(d.climb, 1, 'm/s'));
+      setText('v-hdg', fmt(d.heading, 0, '°'));
+      setText('v-rssi', d.rssi != null ? d.rssi : '–');
+      setText('v-sats', d.gps_sats != null ? d.gps_sats : '–');
+      setText('v-thr', fmt(d.throttle, 0, '%'));
+
+      // WP info
+      const wpTxt = d.wp_current != null ? `#${d.wp_current}` : '–';
+      const distTxt = d.wp_dist != null ? ` / ${Math.round(d.wp_dist)}m` : '';
+      setText('v-wp', wpTxt + distTxt);
+
+      // Battery
+      if (d.battery_pct != null) {
+        setText('v-bat-pct', d.battery_pct + '%');
+        const fill = document.getElementById('bat-fill');
+        fill.style.width = Math.max(0, d.battery_pct) + '%';
+        fill.style.background = d.battery_pct > 50 ? 'var(--green)' : d.battery_pct > 20 ? 'var(--orange)' : 'var(--red)';
+        document.getElementById('p-bat').textContent = `Bat ${d.battery_pct}%`;
+      }
+      if (d.battery_v != null) setText('v-bat-v', d.battery_v.toFixed(2) + 'V');
+
+      // Status pills
+      if (d.gps_fix != null) document.getElementById('p-gps').textContent = `GPS Fix: ${d.gps_fix}`;
+      if (d.mode) document.getElementById('p-mode').textContent = d.mode;
+      if (d.armed != null) {
+        document.getElementById('p-armed').textContent = d.armed ? '● ARMED' : 'Disarmed';
+        document.getElementById('p-armed').className = d.armed ? 'pill pill-red' : 'pill pill-muted';
+      }
+
+      // GPS detail panel
+      if (d.lat != null) setText('d-lat', d.lat.toFixed(7));
+      if (d.lon != null) setText('d-lon', d.lon.toFixed(7));
+      if (d.gps_fix != null) setText('d-fix', ['No fix', 'No fix', '2D Fix', '3D Fix', 'DGPS', 'RTK Float', 'RTK Fixed'][d.gps_fix] || d.gps_fix);
+      if (d.hdop != null) setText('d-hdop', d.hdop.toFixed(2));
+
+      // Map: drone marker + track
+      if (d.lat && d.lon) {
+        const pos = [d.lat, d.lon];
+        if (!droneMkr) { droneMkr = L.marker(pos, { icon: droneIcon }).addTo(flightMap); }
+        else { droneMkr.setLatLng(pos); }
+        const iconEl = document.getElementById('drone-icon-el');
+        if (iconEl && d.heading != null) iconEl.style.transform = `rotate(${d.heading}deg)`;
+        if (!mapCentered) { flightMap.setView(pos, 17); mapCentered = true; }
+        if (track && track.length > 1) trackLine.setLatLngs(track);
+      }
+
+      // HUD
+      if (d.roll != null && d.pitch != null) {
+        drawHUD(d.roll, d.pitch, d.heading || 0);
+        setText('h-roll', `R: ${d.roll.toFixed(1)}°`);
+        setText('h-pitch', `P: ${d.pitch.toFixed(1)}°`);
+        setText('h-yaw', `Y: ${(d.heading || 0).toFixed(0)}°`);
+      }
+    }
+
+    function fmt(v, dec, unit) { return v != null ? v.toFixed(dec) + unit : '–'; }
+    function setText(id, val) { const e = document.getElementById(id); if (e) e.textContent = val; }
+
+    // ─── Artificial Horizon (HUD) ─────────────────────────────────────────────────
+    const hudCanvas = document.getElementById('hud-canvas');
+    const hctx = hudCanvas.getContext('2d');
+    const HW = hudCanvas.width, HH = hudCanvas.height;
+    const HC = HW / 2, VHC = HH / 2, HR = Math.min(HW, HH) / 2 - 4;
+
+    function drawHUD(roll = 0, pitch = 0, heading = 0) {
+      hctx.clearRect(0, 0, HW, HH);
+      hctx.save();
+      hctx.beginPath(); hctx.arc(HC, VHC, HR, 0, Math.PI * 2); hctx.clip();
+
+      const r = roll * Math.PI / 180;
+      const pOff = pitch * 2.0;
+      hctx.translate(HC, VHC + pOff);
+      hctx.rotate(r);
+
+      const skyGrad = hctx.createLinearGradient(0, -HR, 0, 0);
+      skyGrad.addColorStop(0, '#0a1f3d'); skyGrad.addColorStop(1, '#1a4a8a');
+      hctx.fillStyle = skyGrad; hctx.fillRect(-HW, -HH, HW * 2, HH);
+
+      const gndGrad = hctx.createLinearGradient(0, 0, 0, HR);
+      gndGrad.addColorStop(0, '#4a2c10'); gndGrad.addColorStop(1, '#2a1a08');
+      hctx.fillStyle = gndGrad; hctx.fillRect(-HW, 0, HW * 2, HH);
+
+      hctx.strokeStyle = 'rgba(255,255,255,0.9)'; hctx.lineWidth = 2;
+      hctx.beginPath(); hctx.moveTo(-HW, 0); hctx.lineTo(HW, 0); hctx.stroke();
+
+      hctx.restore();
+
+      hctx.strokeStyle = '#f9c74f'; hctx.lineWidth = 2.5;
+      hctx.beginPath();
+      hctx.moveTo(HC - 48, VHC); hctx.lineTo(HC - 18, VHC);
+      hctx.moveTo(HC - 18, VHC); hctx.lineTo(HC - 18, VHC + 9);
+      hctx.moveTo(HC + 48, VHC); hctx.lineTo(HC + 18, VHC);
+      hctx.moveTo(HC + 18, VHC); hctx.lineTo(HC + 18, VHC + 9);
+      hctx.moveTo(HC, VHC); hctx.lineTo(HC, VHC + 7);
+      hctx.stroke();
+
+      hctx.strokeStyle = '#2e3a50'; hctx.lineWidth = 2;
+      hctx.beginPath(); hctx.arc(HC, VHC, HR, 0, Math.PI * 2); hctx.stroke();
+    }
+    drawHUD(0, 0, 0);
+
+    // ─── Mission Planner ──────────────────────────────────────────────────────────
+    let waypoints = [];
+    let drawMode = null; // 'wp' or 'poly'
+    let boundaryPoints = [];
+
+    let boundaryPolygon = L.polygon([], { color: '#a78bfa', weight: 2, fillOpacity: 0.2 }).addTo(missionMap);
+    let gridLines = L.polyline([], { color: '#3dd68c', weight: 2, dashArray: '5, 5' }).addTo(missionMap);
+    let missionPath = L.polyline([], { color: '#4a9eff', weight: 3 }).addTo(missionMap);
+
+    function setDrawMode(mode) {
+      drawMode = (drawMode === mode) ? null : mode;
+      document.getElementById('tb-wp').classList.toggle('active', drawMode === 'wp');
+      document.getElementById('tb-poly').classList.toggle('active', drawMode === 'poly');
+      missionMap.getContainer().style.cursor = drawMode ? 'crosshair' : '';
+      document.getElementById('ag-panel').style.display = (drawMode === 'poly') ? 'flex' : 'none';
+    }
+
+    function clearPolygon() {
+      boundaryPoints = [];
+      boundaryPolygon.setLatLngs([]);
+      gridLines.setLatLngs([]);
+      clearMissionLocal();
+    }
+
+    missionMap.on('click', e => {
+      if (!drawMode) return;
+      if (drawMode === 'wp') {
+        waypoints.push({ seq: waypoints.length, command: 16, lat: e.latlng.lat, lon: e.latlng.lng, alt: 15, speed: 5 });
+        renderWPTable();
+      } else if (drawMode === 'poly') {
+        boundaryPoints.push([e.latlng.lat, e.latlng.lng]);
+        boundaryPolygon.setLatLngs(boundaryPoints);
+        if (boundaryPoints.length >= 3) generateGrid();
+      }
+    });
+
+    function generateGrid() {
+      if (boundaryPoints.length < 3) return;
+      const spacingMeters = parseFloat(document.getElementById('grid-space').value) || 5;
+      const angleDeg = parseFloat(document.getElementById('grid-angle').value) || 0;
+      const altitude = parseFloat(document.getElementById('grid-alt').value) || 10;
+
+      let coords = boundaryPoints.map(p => [p[1], p[0]]);
+      coords.push(coords[0]);
+      const poly = turf.polygon([coords]);
+      const center = turf.centerOfMass(poly);
+      const rotatedPoly = turf.transformRotate(poly, -angleDeg, { pivot: center });
+      const bbox = turf.bbox(rotatedPoly);
+
+      const minX = bbox[0], minY = bbox[1], maxX = bbox[2], maxY = bbox[3];
+      const lines = [];
+      const spacingDeg = spacingMeters / 111320;
+
+      for (let y = minY; y <= maxY; y += spacingDeg) {
+        let line = turf.lineString([[minX - 0.01, y], [maxX + 0.01, y]]);
+        let intersected = turf.lineIntersect(line, rotatedPoly);
+        if (intersected.features.length >= 2) {
+          let pts = intersected.features.sort((a, b) => a.geometry.coordinates[0] - b.geometry.coordinates[0]);
+          lines.push([pts[0].geometry.coordinates, pts[pts.length - 1].geometry.coordinates]);
+        }
+      }
+
+      if (lines.length === 0) return;
+
+      let gridCoords = [];
+      let leftToRight = true;
+      lines.forEach(segment => {
+        let pt1 = turf.transformRotate(turf.point(segment[0]), angleDeg, { pivot: center });
+        let pt2 = turf.transformRotate(turf.point(segment[1]), angleDeg, { pivot: center });
+        const c1 = [pt1.geometry.coordinates[1], pt1.geometry.coordinates[0]];
+        const c2 = [pt2.geometry.coordinates[1], pt2.geometry.coordinates[0]];
+        if (leftToRight) { gridCoords.push(c1); gridCoords.push(c2); }
+        else { gridCoords.push(c2); gridCoords.push(c1); }
+        leftToRight = !leftToRight;
+      });
+
+      gridLines.setLatLngs(gridCoords);
+      waypoints = gridCoords.map((coord, i) => ({
+        seq: i, command: 16, lat: coord[0], lon: coord[1], alt: altitude, speed: 5
+      }));
+      renderWPTable();
+      log('INFO', `Generated ${waypoints.length} ag-grid waypoints`);
+    }
+
+    function renderWPTable() {
+      const tbody = document.getElementById('wp-tbody');
+      tbody.innerHTML = '';
+      const pathCoords = waypoints.map(wp => [wp.lat, wp.lon]);
+      missionPath.setLatLngs(pathCoords);
+      if (pathCoords.length > 0 && drawMode !== 'poly' && drawMode !== 'wp') {
+        missionMap.fitBounds(missionPath.getBounds(), { padding: [50, 50] });
+      }
+      waypoints.forEach((wp, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i}</td>
+          <td>WP</td>
+          <td><input type='number' step='0.000001' value='${wp.lat}' onchange='waypoints[${i}].lat=parseFloat(this.value)' style='width:70px;background:var(--bg);border:1px solid var(--border);'></td>
+          <td><input type='number' step='0.000001' value='${wp.lon}' onchange='waypoints[${i}].lon=parseFloat(this.value)' style='width:70px;background:var(--bg);border:1px solid var(--border);'></td>
+          <td><input type='number' step='0.1' value='${wp.alt||15}' onchange='waypoints[${i}].alt=parseFloat(this.value)' style='width:40px;background:var(--bg);border:1px solid var(--border);'></td>
+          <td><input type='number' step='0.1' value='${wp.speed||5}' onchange='waypoints[${i}].speed=parseFloat(this.value)' style='width:40px;background:var(--bg);border:1px solid var(--border);'></td>
+          <td><button class="wp-del-btn" onclick="waypoints.splice(${i},1);renderWPTable()">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('mp-status').textContent = `${waypoints.length} items`;
+    }
+
+    function clearMissionLocal() { waypoints = []; renderWPTable(); gridLines.setLatLngs([]); boundaryPolygon.setLatLngs([]); }
+
+    async function startMission() {
+      try {
+        const res = await fetch(cfg.url + '/mission/start', { method: 'POST' });
+        if (res.ok) { log('INFO', 'Mission start sent'); }
+        else { log('ERROR', 'Mission start failed: ' + await res.text()); }
+      } catch (e) { log('ERROR', 'Mission start error: ' + e.message); }
+    }
+
+    async function uploadMission() {
+      if (waypoints.length === 0) { alert('No waypoints to upload!'); return; }
+      const uploadWps = waypoints.map((wp, i) => ({
+        seq: i, command: wp.command || 16, frame: 3,
+        lat: wp.lat, lon: wp.lon, alt: wp.alt || 15,
+        param1: wp.param1 || 0, param2: wp.param2 || 0,
+        param3: wp.param3 || 0, param4: wp.param4 || 0,
+        autocontinue: true,
+      }));
+      log('INFO', `Uploading ${uploadWps.length} waypoints...`);
+      document.getElementById('mission-log').textContent = 'Uploading...';
+      try {
+        const res = await fetch(cfg.url + '/mission/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ waypoints: uploadWps })
+        });
+        if (res.ok) {
+          const d = await res.json();
+          log('INFO', `Uploaded ${d.uploaded || uploadWps.length} waypoints`);
+          document.getElementById('mission-log').textContent = `Uploaded — ${uploadWps.length} waypoints`;
+        } else {
+          const txt = await res.text();
+          log('ERROR', 'Upload failed: ' + txt);
+          document.getElementById('mission-log').textContent = 'Upload failed';
+        }
+      } catch (e) {
+        log('ERROR', 'Upload error: ' + e.message);
+        document.getElementById('mission-log').textContent = 'Upload error';
+      }
+    }
+
+    async function downloadMission() {
+      try {
+        const res = await fetch(cfg.url + '/mission/download');
+        const d = await res.json();
+        if (res.ok && d.waypoints) {
+          waypoints = d.waypoints.map((wp, i) => ({ ...wp, seq: i, speed: 5 }));
+          renderWPTable();
+          log('INFO', `Downloaded ${waypoints.length} waypoints`);
+        } else {
+          log('WARN', 'Download returned no waypoints');
+        }
+      } catch (e) { log('ERROR', 'Download error: ' + e.message); }
+    }
+
+    // ─── File Import / Export (QGC WPL 110) ──────────────────────────────────────
+    function exportWaypointsFile() {
+      if (waypoints.length === 0) { alert('No waypoints to export!'); return; }
+      let wpl = 'QGC WPL 110\n';
+      waypoints.forEach((wp, i) => {
+        const isCurrent = i === 0 ? 1 : 0;
+        wpl += `${i}\t${isCurrent}\t3\t${wp.command || 16}\t${wp.param1 || 0}\t${wp.param2 || 0}\t0\t0\t${wp.lat.toFixed(7)}\t${wp.lon.toFixed(7)}\t${wp.alt.toFixed(2)}\t1\n`;
+      });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([wpl], { type: 'text/plain' })),
+        download: 'mission.waypoints'
+      });
+      a.click();
+      log('INFO', 'Mission exported as .waypoints file');
+    }
+
+    function triggerImport() { document.getElementById('file-import').click(); }
+
+    function handleFileImport(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const lines = event.target.result.split('\n');
+        if (!lines[0].includes('QGC WPL')) { alert('Invalid waypoints file.'); return; }
+        waypoints = [];
+        for (let i = 1; i < lines.length; i++) {
+          const p = lines[i].trim().split(/\s+/);
+          if (p.length < 12) continue;
+          waypoints.push({
+            seq: parseInt(p[0]), command: parseInt(p[3]),
+            param1: parseFloat(p[4]), param2: parseFloat(p[5]),
+            lat: parseFloat(p[8]), lon: parseFloat(p[9]),
+            alt: parseFloat(p[10]), speed: 5
+          });
+        }
+        boundaryPoints = [];
+        boundaryPolygon.setLatLngs([]);
+        gridLines.setLatLngs([]);
+        renderWPTable();
+        log('INFO', `Loaded ${waypoints.length} waypoints from ${file.name}`);
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    log('INFO', `Connecting to: ${cfg.url}`);
+    connectWebRTC();
+  </script>
+</body>
+
+</html>

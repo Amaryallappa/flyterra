@@ -16,13 +16,19 @@ const corsHeaders = {
 // T_req = (A_total * R) + T_setup + (N_refills * T_station)
 
 function calculateTReq(totalAcres: number, drone: DroneRow) {
-  // Formula requested: setup_num = ceil(area / minutes_per_acre)
-  const setupNum = Math.ceil(totalAcres / drone.minutes_per_acre)
+  const areaPerRefill = drone.area_per_refill || 10
   
+  // Calculate refills with 0.1 acre tolerance
+  // If remainder is <= 0.1, we don't count an extra refill trip.
+  let nRefills = Math.floor(totalAcres / areaPerRefill)
+  if (totalAcres % areaPerRefill <= 0.1) {
+    nRefills -= 1
+  }
+  if (nRefills < 0) nRefills = 0
+
   const sprayTime = totalAcres * drone.minutes_per_acre
-  const setupTime = drone.base_setup_time_mins * setupNum
-  const refillTime = drone.station_refill_time_mins * setupNum
-  const nRefills = setupNum
+  const setupTime = drone.base_setup_time_mins // Setup is only once per booking
+  const refillTime = nRefills * drone.station_refill_time_mins
   
   const totalMins = sprayTime + setupTime + refillTime
   return { totalMins, nRefills, sprayTime, refillTime, setupTime }
@@ -117,6 +123,7 @@ type DroneRow = {
   base_setup_time_mins: number
   max_acres_per_tank: number
   station_refill_time_mins: number
+  area_per_refill: number
   daily_start_time: string
   daily_end_time: string
   price_per_acre: number
@@ -139,7 +146,7 @@ export const handler: Handler = async (event) => {
     .from('fields')
     .select(`
       field_id, area_acres, station_id, 
-      base_stations(status, minutes_per_acre, station_refill_time_mins, base_setup_time_mins, price_per_acre, daily_start_time, daily_end_time)
+      base_stations(status, minutes_per_acre, station_refill_time_mins, base_setup_time_mins, price_per_acre, daily_start_time, daily_end_time, area_per_refill)
     `)
     .in('field_id', fieldIds)
 
@@ -173,12 +180,12 @@ export const handler: Handler = async (event) => {
   const dayEnd = `${nextDay}T23:59:59Z`
 
   // Fetch bookings that could possibly overlap with our 2-day window
-  // (Starts before end of window AND ends after start of window)
+  // Filter by station_id to ensure the entire base station resource is checked
   const { data: existing } = await supabase
     .from('bookings')
     .select('scheduled_start, scheduled_end')
-    .eq('drone_id', drone.drone_id)
-    .in('service_status', ['Pending', 'Confirmed', 'In_Progress'])
+    .eq('station_id', stationId)
+    .in('service_status', ['Pending', 'Confirmed', 'In_Progress', 'On_Hold']) // Excludes 'Cancelled', releasing those slots
     .gt('scheduled_end',   dayStart)
     .lt('scheduled_start', dayEnd)
 
@@ -190,6 +197,7 @@ export const handler: Handler = async (event) => {
     price_per_acre:           Number(station?.price_per_acre ?? drone.price_per_acre),
     daily_start_time:         station?.daily_start_time ?? drone.daily_start_time,
     daily_end_time:           station?.daily_end_time ?? drone.daily_end_time,
+    area_per_refill:          Number(station?.area_per_refill ?? drone.area_per_refill ?? 10),
     max_acres_per_tank:       Number(drone.max_acres_per_tank), // still from drone hardware
   }
 

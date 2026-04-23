@@ -29,10 +29,8 @@ export default function AdminLayout() {
         lg:relative lg:translate-x-0
       `}>
         <div className="h-16 flex items-center gap-2 px-6 border-b border-white/10">
-          <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">AD</span>
-          </div>
-          <span className="font-bold text-white">Admin</span>
+          <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain brightness-200" />
+          <span className="font-bold text-white tracking-wider">FLYTERRA</span>
           <button onClick={() => setOpen(false)} className="ml-auto lg:hidden text-gray-400"><X size={18} /></button>
         </div>
         <div className="px-4 py-3 mx-3 mt-3 bg-white/5 rounded-lg">

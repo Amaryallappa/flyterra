@@ -23,13 +23,27 @@ const supabase = createClient(
 
 function calculateTReqMins(
   totalAcres: number,
-  drone: { minutes_per_acre: number; base_setup_time_mins: number; station_refill_time_mins: number },
-): number {
-  const setupNum = Math.ceil(totalAcres / drone.minutes_per_acre)
-  const spray = totalAcres * drone.minutes_per_acre
-  const setup = setupNum * drone.base_setup_time_mins
-  const refill = setupNum * drone.station_refill_time_mins
-  return spray + setup + refill
+  params: { minutes_per_acre: number; base_setup_time_mins: number; station_refill_time_mins: number; area_per_refill: number },
+): { totalMins: number; nRefills: number; sprayTime: number; refillTime: number; setupTime: number } {
+  const areaPerRefill = params.area_per_refill || 10
+  
+  let nRefills = Math.floor(totalAcres / areaPerRefill)
+  if (totalAcres % areaPerRefill <= 0.1) {
+    nRefills -= 1
+  }
+  if (nRefills < 0) nRefills = 0
+
+  const sprayTime = totalAcres * params.minutes_per_acre
+  const setupTime = params.base_setup_time_mins
+  const refillTime = nRefills * params.station_refill_time_mins
+  
+  return {
+    totalMins: sprayTime + setupTime + refillTime,
+    nRefills,
+    sprayTime,
+    refillTime,
+    setupTime
+  }
 }
 
 function calculateEndTime(
@@ -125,6 +139,7 @@ export const handler: Handler = async (event) => {
     price_per_acre:           Number(station?.price_per_acre ?? droneData.price_per_acre),
     daily_start_time:         station?.daily_start_time ?? droneData.daily_start_time,
     daily_end_time:           station?.daily_end_time ?? droneData.daily_end_time,
+    area_per_refill:          Number(station?.area_per_refill ?? droneData.area_per_refill ?? 10),
   }
 
   // 2. Sum field areas
@@ -140,12 +155,8 @@ export const handler: Handler = async (event) => {
 
   const totalAcres = fields.reduce((s, f) => s + Number(f.area_acres), 0)
   
-  const mpa = opParams.minutes_per_acre
-  const refillCycles = Math.ceil(totalAcres / mpa)
-  const sprayTime = totalAcres * mpa
-  const setupTime = refillCycles * opParams.base_setup_time_mins
-  const refillTime = refillCycles * opParams.station_refill_time_mins
-  const tReqMins = sprayTime + setupTime + refillTime
+  const { totalMins, nRefills } = calculateTReqMins(totalAcres, opParams)
+  const tReqMins = totalMins
 
   // Fetch Razorpay keys from system_settings
   const { data: settings } = await supabase
@@ -165,12 +176,12 @@ export const handler: Handler = async (event) => {
 
   const totalCost = Math.round(totalAcres * opParams.price_per_acre * 100) / 100
 
-  // 3. Conflict check — no overlapping bookings for this drone
+  // 3. Conflict check — no overlapping bookings for this drone/station
   const { data: conflicts } = await supabase
     .from('bookings')
     .select('booking_id')
-    .eq('drone_id', drone_id)
-    .in('service_status', ['Pending', 'Confirmed', 'In_Progress'])
+    .eq('station_id', station_id)
+    .in('service_status', ['Pending', 'Confirmed', 'In_Progress', 'On_Hold'])
     .lt('scheduled_start', endDt.toISOString())
     .gt('scheduled_end',   startDt.toISOString())
 
@@ -178,58 +189,10 @@ export const handler: Handler = async (event) => {
     return { statusCode: 409, headers: corsHeaders, body: JSON.stringify({ detail: 'Slot no longer available. Please refresh.' }) }
   }
 
-  // 4. Insert booking
-  const { data: booking, error: bookingErr } = await supabase
-    .from('bookings')
-    .insert({
-      farmer_id,
-      // drone_id, // User requested not to set drone_id at creation
-      station_id,
-      service_status:  'Pending',
-      scheduled_start: startDt.toISOString(),
-      scheduled_end:   endDt.toISOString(),
-      total_cost:      totalCost,
-      total_spray_time_mins: sprayTime,
-      refills_required:      refillCycles,
-    })
-    .select('booking_id')
-    .single()
+  // Generate a temporary reference ID for the Razorpay receipt
+  const tempRefId = `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
-  if (bookingErr || !booking) {
-    return { statusCode: 500, headers: corsHeaders, body: JSON.stringify({ detail: bookingErr?.message ?? 'Insert failed' }) }
-  }
-
-  const bookingId = booking.booking_id
-
-  // 5. Insert booking_fields (junction)
-  const bookingFieldRows = field_ids.map((fid, i) => ({
-    booking_id:  bookingId,
-    field_id:    fid,
-    spray_order: spray_order?.[i] ?? i + 1,
-  }))
-  await supabase.from('booking_fields').insert(bookingFieldRows)
-
-  // 6. Insert job_configuration
-  if (cartridge_config) {
-    await supabase.from('job_configurations').insert({
-      booking_id:              bookingId,
-      cartridge_1_ml_per_acre: cartridge_config.c1_ml_per_acre ?? 0,
-      cartridge_2_ml_per_acre: cartridge_config.c2_ml_per_acre ?? 0,
-      cartridge_3_ml_per_acre: cartridge_config.c3_ml_per_acre ?? 0,
-      cartridge_4_ml_per_acre: cartridge_config.c4_ml_per_acre ?? 0,
-      cartridge_5_ml_per_acre: cartridge_config.c5_ml_per_acre ?? 0,
-    })
-  }
-
-  // 7. Create wallet hold
-  await supabase.from('wallet_transactions').insert({
-    farmer_id,
-    booking_id: bookingId,
-    type:       'Payment_Hold',
-    amount:     -totalCost,
-  })
-
-  // 8. Create Razorpay Order if keys exist
+  // 4. Create Razorpay Order if keys exist (using temporary receipt)
   let razorpayOrder = null
   if (rzpKeyId && rzpKeySecret) {
     const auth = Buffer.from(`${rzpKeyId}:${rzpKeySecret}`).toString('base64')
@@ -242,7 +205,7 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({
         amount: Math.round(totalCost * 100), // paise
         currency: 'INR',
-        receipt: `rcpt_${bookingId}`,
+        receipt: tempRefId,
       }),
     })
 
@@ -254,18 +217,14 @@ export const handler: Handler = async (event) => {
         amount_paise:      rzpData.amount,
         currency:          rzpData.currency,
       }
-      // Update booking with order id
-      await supabase.from('bookings').update({ 
-        notes: JSON.stringify({ razorpay_order_id: rzpData.id }) 
-      }).eq('booking_id', bookingId)
     }
   }
 
   return {
-    statusCode: 201,
+    statusCode: 200, // Changed from 201 because we haven't created anything yet
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      booking_id:      bookingId,
+      temp_ref_id:     tempRefId,
       scheduled_start: startDt.toISOString(),
       scheduled_end:   endDt.toISOString(),
       total_cost:      totalCost,

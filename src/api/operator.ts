@@ -131,7 +131,9 @@ export const operatorApi = {
       .select(`
         booking_id, service_status, scheduled_start, scheduled_end,
         total_cost, created_at,
-        booking_fields(spray_order, fields(field_id, field_name, area_acres))
+        booking_fields(spray_order, fields(field_id, field_name, area_acres)),
+        drones(drone_id, drone_serial_no, drone_companion_url),
+        base_stations(station_id, station_serial_no, status)
       `)
       .gte('scheduled_start', todayStart.toISOString())
       .lte('scheduled_start', todayEnd.toISOString())
@@ -142,6 +144,8 @@ export const operatorApi = {
     return (data ?? []).map((b) => {
       const fields = (b.booking_fields as unknown as Array<{ spray_order: number; fields: { field_id: number; field_name: string; area_acres: number } }>) ?? []
       const totalAcres = fields.reduce((s, f) => s + Number(f.fields?.area_acres ?? 0), 0)
+      const drone = b.drones as unknown as { drone_id: number; drone_serial_no: string; drone_companion_url: string | null } | null
+      const station = b.base_stations as unknown as { station_id: number; station_serial_no: string; status: string } | null
       return {
         booking_id: b.booking_id,
         service_status: b.service_status,
@@ -151,6 +155,12 @@ export const operatorApi = {
         total_acres: totalAcres,
         field_count: fields.length,
         created_at: b.created_at,
+        drone_id: drone?.drone_id ?? null,
+        drone_serial_no: drone?.drone_serial_no ?? null,
+        drone_companion_url: drone?.drone_companion_url ?? null,
+        station_id: station?.station_id ?? null,
+        station_serial_no: station?.station_serial_no ?? null,
+        station_status: station?.status ?? null,
       }
     })
   },
@@ -169,7 +179,9 @@ export const operatorApi = {
       .select(`
         booking_id, service_status, scheduled_start, scheduled_end,
         total_cost, created_at,
-        booking_fields(spray_order, fields(field_id, field_name, area_acres))
+        booking_fields(spray_order, fields(field_id, field_name, area_acres)),
+        drones(drone_id, drone_serial_no, drone_companion_url),
+        base_stations(station_id, station_serial_no, status)
       `)
       .gte('scheduled_start', tomorrow.toISOString())
       .lte('scheduled_start', nextWeek.toISOString())
@@ -181,6 +193,8 @@ export const operatorApi = {
     return (data ?? []).map((b) => {
       const fields = (b.booking_fields as unknown as Array<{ spray_order: number; fields: { field_id: number; field_name: string; area_acres: number } }>) ?? []
       const totalAcres = fields.reduce((s, f) => s + Number(f.fields?.area_acres ?? 0), 0)
+      const drone = b.drones as unknown as { drone_id: number; drone_serial_no: string; drone_companion_url: string | null } | null
+      const station = b.base_stations as unknown as { station_id: number; station_serial_no: string; status: string } | null
       return {
         booking_id: b.booking_id,
         service_status: b.service_status,
@@ -190,6 +204,12 @@ export const operatorApi = {
         total_acres: totalAcres,
         field_count: fields.length,
         created_at: b.created_at,
+        drone_id: drone?.drone_id ?? null,
+        drone_serial_no: drone?.drone_serial_no ?? null,
+        drone_companion_url: drone?.drone_companion_url ?? null,
+        station_id: station?.station_id ?? null,
+        station_serial_no: station?.station_serial_no ?? null,
+        station_status: station?.status ?? null,
       }
     })
   },
@@ -208,6 +228,59 @@ export const operatorApi = {
       .single()
     if (error) throw new Error(error.message)
     return data
+  },
+
+  getAllJobs: async () => {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        booking_id, service_status, scheduled_start, scheduled_end,
+        total_cost, created_at,
+        booking_fields(spray_order, fields(field_id, field_name, area_acres)),
+        drones(drone_id, drone_serial_no, drone_companion_url),
+        base_stations(station_id, station_serial_no, status)
+      `)
+      .in('service_status', ['Pending', 'Confirmed', 'In_Progress', 'On_Hold'])
+      .order('scheduled_start', { ascending: false })
+      .limit(200)
+
+    if (error) throw new Error(error.message)
+
+    return (data ?? []).map((b) => {
+      const fields = (b.booking_fields as unknown as Array<{ spray_order: number; fields: { field_id: number; field_name: string; area_acres: number } }>) ?? []
+      const totalAcres = fields.reduce((s, f) => s + Number(f.fields?.area_acres ?? 0), 0)
+      const drone = b.drones as unknown as { drone_id: number; drone_serial_no: string; drone_companion_url: string | null } | null
+      const station = b.base_stations as unknown as { station_id: number; station_serial_no: string; status: string } | null
+      return {
+        booking_id: b.booking_id,
+        service_status: b.service_status,
+        scheduled_start: b.scheduled_start,
+        scheduled_end: b.scheduled_end,
+        total_cost: b.total_cost,
+        total_acres: totalAcres,
+        field_count: fields.length,
+        created_at: b.created_at,
+        drone_id: drone?.drone_id ?? null,
+        drone_serial_no: drone?.drone_serial_no ?? null,
+        drone_companion_url: drone?.drone_companion_url ?? null,
+        station_id: station?.station_id ?? null,
+        station_serial_no: station?.station_serial_no ?? null,
+        station_status: station?.status ?? null,
+      }
+    })
+  },
+
+  confirmBooking: (bookingId: number) =>
+    authPost('/api/operator-actions', { action: 'confirm_booking', booking_id: bookingId }),
+
+  releaseHold: async (bookingId: number) => {
+    const { error } = await supabase
+      .from('bookings')
+      .update({ service_status: 'Confirmed' })
+      .eq('booking_id', bookingId)
+      .eq('service_status', 'On_Hold')
+    if (error) throw new Error(error.message)
+    return { ok: true }
   },
 
   launchBooking: (bookingId: number) =>
@@ -282,10 +355,57 @@ export const operatorApi = {
   },
 
   sendDroneCommand: async (
-    _droneId: number,
-    _command: string,
-    _params?: { param1?: number; param2?: number; mode?: string },
+    drone: { drone_id: number; drone_companion_url: string | null },
+    command: string,
+    params?: { param1?: number; param2?: number; mode?: string },
   ) => {
-    throw new Error('Drone command requires companion PC connection. Set drone_backend_url in settings.')
+    let baseUrl = drone.drone_companion_url
+    if (!baseUrl) throw new Error('Drone companion URL not configured')
+
+    // Normalise: convert ws(s):// to http(s):// and strip /ws suffix
+    baseUrl = baseUrl.replace(/^wss:\/\//i, 'https://').replace(/^ws:\/\//i, 'http://')
+    if (!/^https?:\/\//i.test(baseUrl)) {
+      baseUrl = (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) ? `http://${baseUrl}` : `https://${baseUrl}`
+    }
+
+    const cleanUrl = baseUrl.replace(/\/ws\/?$/, '').replace(/\/$/, '')
+    const cmdUpper = command.toUpperCase()
+    let endpoint = `${cleanUrl}/command/${command.toLowerCase()}`
+    let body: Record<string, unknown> | null = null
+
+    if (cmdUpper === 'TAKEOFF') {
+      body = { alt: params?.param1 ?? 10 }
+    } else if (cmdUpper === 'SET_MODE' || cmdUpper === 'MODE' || cmdUpper === 'LOITER' || cmdUpper === 'HOLD') {
+      endpoint = `${cleanUrl}/command/mode`
+      const modeMap: Record<string, string> = { LOITER: 'LOITER', HOLD: 'BRAKE' }
+      body = { mode: modeMap[cmdUpper] ?? params?.mode ?? 'GUIDED' }
+    } else if (cmdUpper === 'SET_SPEED' || cmdUpper === 'SPEED') {
+      endpoint = `${cleanUrl}/command/speed`
+      body = { speed: params?.param1 ?? 5 }
+    } else if (cmdUpper === 'SET_ALTITUDE' || cmdUpper === 'ALTITUDE') {
+      endpoint = `${cleanUrl}/command/altitude`
+      body = { alt: params?.param1 ?? 10 }
+    } else if (cmdUpper === 'START_MISSION') {
+      endpoint = `${cleanUrl}/mission/start`
+    } else if (cmdUpper === 'GOTO') {
+      endpoint = `${cleanUrl}/command/goto`
+      body = { lat: params?.param1, lon: params?.param2 }
+    }
+
+    // For commands with a body, send JSON; for simple commands (ARM, DISARM,
+    // KILL, RTL, LAND, etc.) send a plain POST to avoid CORS preflight.
+    const fetchOpts: RequestInit = { method: 'POST' }
+    if (body) {
+      fetchOpts.headers = { 'Content-Type': 'application/json' }
+      fetchOpts.body = JSON.stringify(body)
+    }
+
+    const res = await fetch(endpoint, fetchOpts)
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.detail || `Command failed with status ${res.status}`)
+    }
+    return res.json().catch(() => ({ ok: true }))
   },
 }

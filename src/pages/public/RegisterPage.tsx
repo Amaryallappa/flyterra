@@ -5,10 +5,12 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { formatMobileNumber } from '@/utils/format'
 
 const schema = z.object({
   full_name:     z.string().min(2, 'Enter your full name'),
-  mobile_number: z.string().regex(/^\+?[0-9]{10,13}$/, 'Invalid mobile number'),
+  mobile_number: z.string().length(10, 'Mobile number must be exactly 10 digits'),
   email:         z.string().email('Enter a valid email'),
   password:      z.string().min(8, 'At least 8 characters'),
   confirm:       z.string(),
@@ -21,11 +23,18 @@ type Form = z.infer<typeof schema>
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [showPwd, setShowPwd] = useState(false)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Form>({
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   })
+
+  // Sanitize mobile number: only digits, remove leading 0, max 10 chars
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = formatMobileNumber(e.target.value)
+    setValue('mobile_number', val, { shouldValidate: true })
+  }
 
   const onSubmit = async (data: Form) => {
     try {
@@ -41,10 +50,15 @@ export default function RegisterPage() {
       })
 
       const result = await res.json()
-      if (!res.ok) throw new Error(result.error || 'Registration failed')
+      if (!res.ok) {
+        throw new Error(result.details || result.error || 'Registration failed')
+      }
 
-      toast.success('Account created! Please sign in.')
-      navigate('/login')
+      toast.success('Account created! Logging you in...')
+      
+      // Auto-login
+      await login(data.email, data.password)
+      navigate('/dashboard')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Registration failed')
     }
@@ -55,10 +69,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-              <span className="text-brand-700 font-bold text-lg">A</span>
-            </div>
-            <span className="text-white font-bold text-2xl">AgriDrone</span>
+            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-10 h-10 object-contain brightness-200" />
+            <span className="text-white font-bold text-2xl tracking-wider">FLYTERRA</span>
           </Link>
           <p className="text-brand-200 mt-2">Create your farmer account</p>
         </div>
@@ -73,7 +85,12 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
-                <input {...register('mobile_number')} className="input" placeholder="+91 9876543210" />
+                <input 
+                  {...register('mobile_number')} 
+                  onChange={handleMobileChange}
+                  className="input" 
+                  placeholder="9876543210" 
+                />
                 {errors.mobile_number && <p className="text-red-500 text-xs mt-1">{errors.mobile_number.message}</p>}
               </div>
             </div>

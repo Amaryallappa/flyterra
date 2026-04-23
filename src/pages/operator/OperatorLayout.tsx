@@ -24,14 +24,12 @@ export default function OperatorLayout() {
         lg:relative lg:translate-x-0
       `}>
         <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-100">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">O</span>
-          </div>
-          <span className="font-bold text-gray-900">AgriDrone</span>
+          <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain" />
+          <span className="font-bold text-gray-900 tracking-wider">FLYTERRA</span>
           <button onClick={() => setOpen(false)} className="ml-auto lg:hidden"><X size={18} /></button>
         </div>
-        <div className="px-4 py-3 mx-3 mt-3 bg-blue-50 rounded-lg">
-          <p className="text-xs text-blue-600 font-medium">Operator</p>
+        <div className="px-4 py-3 mx-3 mt-3 bg-brand-50 rounded-lg">
+          <p className="text-xs text-brand-600 font-medium">Operator</p>
           <p className="text-sm font-semibold text-gray-900 truncate">{user?.full_name ?? user?.username}</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -39,7 +37,7 @@ export default function OperatorLayout() {
             <NavLink key={to} to={to} end={end} onClick={() => setOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                  isActive ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-50'
                 }`}>
               <Icon size={18} /> {label}
             </NavLink>

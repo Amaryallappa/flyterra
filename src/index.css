@@ -12,6 +12,11 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold leading-tight;
   }
+  /* FLYTERRA brand wordmark — tight letter-spacing, uppercase feel */
+  .brand-wordmark {
+    letter-spacing: 0.12em;
+    font-weight: 800;
+  }
 }
 
 @layer components {

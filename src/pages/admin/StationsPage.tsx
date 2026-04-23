@@ -12,6 +12,7 @@ interface Station {
   minutes_per_acre: number; station_refill_time_mins: number
   base_setup_time_mins: number; operation_mode: string
   price_per_acre: number; daily_start_time: string; daily_end_time: string
+  area_per_refill: number
 }
 
 interface StationHealth {
@@ -353,6 +354,7 @@ export default function StationsPage() {
         station_refill_time_mins: Number(d.station_refill_time_mins),
         base_setup_time_mins: Number(d.base_setup_time_mins),
         price_per_acre: Number(d.price_per_acre),
+        area_per_refill: Number(d.area_per_refill),
         last_known_lat: d.last_known_lat === "" ? null : Number(d.last_known_lat),
         last_known_lng: d.last_known_lng === "" ? null : Number(d.last_known_lng),
       }
@@ -395,7 +397,8 @@ export default function StationsPage() {
             daily_start_time: '06:00',
             daily_end_time: '18:00',
             last_known_lat: 20.5937,
-            last_known_lng: 78.9629
+            last_known_lng: 78.9629,
+            area_per_refill: 10,
           }) 
         }}
           className="btn-primary flex items-center gap-2"><Plus size={16} /> Add Station</button>
@@ -448,6 +451,10 @@ export default function StationsPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Price Per Acre (₹)</label>
                     <input {...register('price_per_acre')} type="number" className="input" placeholder="550" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Area Per Refill (acre/refill)</label>
+                    <input {...register('area_per_refill')} type="number" step="0.1" className="input" placeholder="10" />
                   </div>
                 </div>
 

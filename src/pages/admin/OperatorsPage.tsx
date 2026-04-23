@@ -7,6 +7,7 @@ import { Plus, X, Loader2, UserCheck, UserX, Eye, EyeOff, Pencil, Trash2 } from 
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { supabase } from '@/api/supabase'
+import { formatMobileNumber } from '@/utils/format'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -28,7 +29,7 @@ interface Station { station_id: number; station_serial_no: string; status: strin
 
 const createSchema = z.object({
   full_name:     z.string().min(2, 'Enter full name'),
-  mobile_number: z.string().regex(/^[6-9]\d{9}$/, 'Enter 10-digit mobile number'),
+  mobile_number: z.string().length(10, 'Enter 10-digit mobile number'),
   username:      z.string().min(3, 'Min 3 characters'),
   email:         z.string().email('Invalid email'),
   password:      z.string().min(8, 'Min 8 characters'),
@@ -39,7 +40,7 @@ type CreateForm = z.infer<typeof createSchema>
 
 const editSchema = z.object({
   full_name:     z.string().min(2, 'Enter full name'),
-  mobile_number: z.string().regex(/^[6-9]\d{9}$/, 'Enter 10-digit mobile number'),
+  mobile_number: z.string().length(10, 'Enter 10-digit mobile number'),
   email:         z.string().email('Invalid email').optional().or(z.literal('')),
   address:       z.string().optional(),
   assigned_base_station_id: z.number().nullable().optional(),
@@ -102,6 +103,13 @@ export default function OperatorsPage() {
 
   const createForm = useForm<CreateForm>({ resolver: zodResolver(createSchema) })
   const editForm   = useForm<EditForm>({ resolver: zodResolver(editSchema) })
+
+  const handleCreateMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    createForm.setValue('mobile_number', formatMobileNumber(e.target.value), { shouldValidate: true })
+  }
+  const handleEditMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    editForm.setValue('mobile_number', formatMobileNumber(e.target.value), { shouldValidate: true })
+  }
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
@@ -206,7 +214,12 @@ export default function OperatorsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mobile <span className="text-red-500">*</span></label>
-                  <input {...createForm.register('mobile_number')} className="input" placeholder="9876543210" />
+                  <input 
+                    {...createForm.register('mobile_number')} 
+                    onChange={handleCreateMobileChange}
+                    className="input" 
+                    placeholder="9876543210" 
+                  />
                   {createForm.formState.errors.mobile_number && <p className="text-red-500 text-xs mt-1">{createForm.formState.errors.mobile_number.message}</p>}
                 </div>
                 <div>
@@ -286,7 +299,11 @@ export default function OperatorsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Mobile <span className="text-red-500">*</span></label>
-                  <input {...editForm.register('mobile_number')} className="input" />
+                  <input 
+                    {...editForm.register('mobile_number')} 
+                    onChange={handleEditMobileChange}
+                    className="input" 
+                  />
                   {editForm.formState.errors.mobile_number && <p className="text-red-500 text-xs mt-1">{editForm.formState.errors.mobile_number.message}</p>}
                 </div>
                 <div>

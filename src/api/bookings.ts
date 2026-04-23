@@ -108,7 +108,7 @@ export const bookingsApi = {
   },
 
   create: async (payload: BookingCreatePayload): Promise<{ 
-    booking_id: number; 
+    temp_ref_id: string; 
     scheduled_start: string; 
     scheduled_end: string; 
     total_cost: number;
@@ -141,8 +141,8 @@ export const bookingsApi = {
   },
 
   verifyPayment: async (
-    bookingId: number,
-    data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+    razorpayData: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string },
+    bookingDetails: any
   ) => {
     const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/booking-verify-payment', {
@@ -151,7 +151,7 @@ export const bookingsApi = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ booking_id: bookingId, ...data }),
+      body: JSON.stringify({ ...razorpayData, booking_details: bookingDetails }),
     })
     const json = await res.json()
     if (!res.ok) throw new Error(json.detail || 'Payment verification failed')
@@ -159,6 +159,8 @@ export const bookingsApi = {
   },
 
   list: async (): Promise<BookingListItem[]> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated')
     const { data, error } = await supabase
       .from('bookings')
       .select(`
@@ -166,6 +168,7 @@ export const bookingsApi = {
         total_cost, created_at,
         booking_fields(spray_order, fields(field_id, field_name, area_acres))
       `)
+      .eq('farmer_id', session.user.id) // Only show the logged-in user's bookings
       .order('scheduled_start', { ascending: false })
     if (error) throw error
     return (data ?? []).map((b) => {
@@ -183,6 +186,9 @@ export const bookingsApi = {
   },
 
   get: async (id: number): Promise<BookingDetail> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated')
+
     const { data, error } = await supabase
       .from('bookings')
       .select(`
@@ -194,6 +200,7 @@ export const bookingsApi = {
         job_configurations(*)
       `)
       .eq('booking_id', id)
+      .eq('farmer_id', session.user.id) // Security: verify ownership
       .single()
     if (error) throw error
 

@@ -32,7 +32,7 @@ const CART_LABELS = [
   'Cartridge 1', 'Cartridge 2', 'Cartridge 3', 'Cartridge 4', 'Cartridge 5',
 ] as const
 
-const steps = ['Select Fields', 'Spray Config & Date', 'Time Slot', 'Confirm & Pay']
+const steps = ['Select Fields', 'Spray Configuration', 'Date & Time Slot', 'Confirm & Pay']
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -83,22 +83,32 @@ export default function BookServicePage() {
     }),
     onSuccess: (summary) => {
       if (summary.razorpay) {
-        openRazorpay(summary.booking_id, summary.razorpay)
+        // Collect all data required to create the booking on backend
+        const details = {
+          field_ids:        state.selectedFields,
+          cartridge_config: state.cartridges,
+          scheduled_start:  summary.scheduled_start, // use the normalized start from backend
+          scheduled_end:    summary.scheduled_end,
+          total_cost:       summary.total_cost,
+          drone_id:         state.drone_id,
+          station_id:       state.station_id,
+          temp_ref_id:      summary.temp_ref_id
+        }
+        openRazorpay(summary.razorpay, details)
       } else {
-        toast('Booking created — Razorpay unavailable. Contact support.', { icon: '⚠️' })
-        navigate(`/farmer/bookings/${summary.booking_id}`)
+        toast.error('Razorpay initialization failed. Contact support.')
       }
     },
     onError: (err: unknown) => toast.error(apiErrorMsg(err, 'Booking failed')),
   })
-
-  const openRazorpay = (bookingId: number, rz: NonNullable<typeof createBooking.data>['razorpay']) => {
+ 
+  const openRazorpay = (rz: NonNullable<typeof createBooking.data>['razorpay'], details: any) => {
     if (!rz) return
     const options = {
       key:      rz.razorpay_key_id,
       amount:   rz.amount_paise,
       currency: rz.currency,
-      name:     'AgriDrone',
+      name:     'FLYTERRA',
       description: 'Drone Spray Service',
       order_id: rz.razorpay_order_id,
       handler: async (response: {
@@ -107,13 +117,13 @@ export default function BookServicePage() {
         razorpay_signature: string
       }) => {
         try {
-          await bookingsApi.verifyPayment(bookingId, {
+          const verifyRes = await bookingsApi.verifyPayment({
             razorpay_order_id:    response.razorpay_order_id,
             razorpay_payment_id:  response.razorpay_payment_id,
             razorpay_signature:   response.razorpay_signature,
-          })
+          }, details)
           toast.success('Payment successful! Booking confirmed.')
-          navigate(`/farmer/bookings/${bookingId}`)
+          navigate(`/farmer/bookings/${verifyRes.booking_id}`)
         } catch {
           toast.error('Payment verification failed. Contact support.')
         }
@@ -137,7 +147,11 @@ export default function BookServicePage() {
 
   const canNext = () => {
     if (step === 0) return state.selectedFields.length > 0
-    if (step === 1) return cartTotal > 0 && !!state.date
+    if (step === 1) {
+      const vals = Object.values(state.cartridges)
+      const allValid = vals.every(v => v === 0 || (v >= 30 && v <= 300))
+      return cartTotal > 0 && allValid
+    }
     if (step === 2) return !!state.selectedSlot
     return false
   }
@@ -242,17 +256,7 @@ export default function BookServicePage() {
         {/* Step 1 — Spray Config & Date */}
         {step === 1 && (
           <div className="space-y-5">
-            <h2 className="font-semibold text-gray-900">Spray Configuration & Date</h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
-              <input
-                type="date"
-                value={state.date}
-                min={format(new Date(), 'yyyy-MM-dd')}
-                onChange={(e) => setState((s) => ({ ...s, date: e.target.value, selectedSlot: null }))}
-                className="input" />
-            </div>
+            <h2 className="font-semibold text-gray-900">Spray Configuration</h2>
 
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -269,12 +273,19 @@ export default function BookServicePage() {
                       <input
                         type="number"
                         min={0}
-                        max={5000}
+                        max={300}
                         value={state.cartridges[key] || ''}
                         placeholder="0"
                         onChange={(e) => setCart(key, Math.max(0, parseInt(e.target.value) || 0))}
-                        className="input w-32" />
+                        className={`input w-32 ${
+                          state.cartridges[key] > 0 && (state.cartridges[key] < 30 || state.cartridges[key] > 300)
+                            ? 'border-red-500 bg-red-50' 
+                            : ''
+                        }`} />
                       <span className="text-xs text-gray-400">ml/acre</span>
+                      {state.cartridges[key] > 0 && (state.cartridges[key] < 30 || state.cartridges[key] > 300) && (
+                        <span className="text-[10px] text-red-500 font-medium">Must be 30-300 ml</span>
+                      )}
                     </div>
                   )
                 })}
@@ -294,15 +305,31 @@ export default function BookServicePage() {
         {/* Step 2 — Time slot */}
         {step === 2 && (
           <div className="space-y-4">
-            <div className="flex items-start justify-between">
-              <h2 className="font-semibold text-gray-900">
-                Available Slots — {format(new Date(state.date), 'MMMM d, yyyy')}
-              </h2>
-              {state.slotResponse && (
-                <span className="text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">
-                  Est. duration: {state.slotResponse.t_req_breakdown.total_hours}
-                </span>
-              )}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold text-gray-900">Select Date & Time Slot</h2>
+                {state.slotResponse && (
+                  <span className="text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">
+                    Est. duration: {state.slotResponse.t_req_breakdown.total_hours}
+                  </span>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Preferred Date</label>
+                <input
+                  type="date"
+                  value={state.date}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                  onChange={(e) => setState((s) => ({ ...s, date: e.target.value, selectedSlot: null }))}
+                  className="input py-2 shadow-sm border-gray-200" />
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-700 mb-3">
+                Available Slots for {format(new Date(state.date), 'MMMM d, yyyy')}
+              </p>
             </div>
             {loadingSlots ? (
               <div className="flex justify-center py-8"><Loader2 size={24} className="animate-spin text-brand-500" /></div>

@@ -37,17 +37,28 @@ function PolygonDrawer({ onCoords }: { onCoords: (coords: Array<[number, number]
       rotateMode: false,
     })
 
+    const updateCoords = (layer: L.Polygon) => {
+      const latlngs = layer.getLatLngs()
+      const coords = (Array.isArray(latlngs[0]) ? latlngs[0] : latlngs) as L.LatLng[]
+      onCoords(coords.map((ll): [number, number] => [ll.lat, ll.lng]))
+    }
+
     map.on('pm:create', (e) => {
       const layer = e.layer as L.Polygon
-      // Remove previous polygons
+      // Remove previous polygons to ensure only one field is drawn
       map.eachLayer((l) => {
         if (l instanceof L.Polygon && l !== layer) map.removeLayer(l)
       })
-      const coords = (layer.getLatLngs()[0] as L.LatLng[]).map(
-        (ll): [number, number] => [ll.lat, ll.lng]
-      )
-      onCoords(coords)
+      
+      updateCoords(layer)
+
+      // Listen for future edits and drags on this specific layer
+      layer.on('pm:edit', () => updateCoords(layer))
+      layer.on('pm:dragend', () => updateCoords(layer))
     })
+
+    // Also handle global remove events
+    map.on('pm:remove', () => onCoords([]))
 
     // Try to center on user location
     navigator.geolocation?.getCurrentPosition(

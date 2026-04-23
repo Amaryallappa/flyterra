@@ -38,10 +38,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center">
-              <span className="text-brand-700 font-bold text-lg">A</span>
-            </div>
-            <span className="text-white font-bold text-2xl">AgriDrone</span>
+            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-10 h-10 object-contain brightness-200" />
+            <span className="text-white font-bold text-2xl tracking-wider">FLYTERRA</span>
           </Link>
           <p className="text-brand-200 mt-2">Sign in to your account</p>
         </div>

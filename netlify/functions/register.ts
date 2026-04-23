@@ -37,11 +37,12 @@ export const handler: Handler = async (event) => {
   }
 
   // 1. Create Auth User
+  const username = email.split('@')[0] + Math.floor(Math.random() * 1000)
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-    user_metadata: { full_name, mobile_number, role: 'Farmer' }
+    user_metadata: { full_name, mobile_number, role: 'Farmer', username }
   })
 
   if (authError) {
@@ -56,27 +57,26 @@ export const handler: Handler = async (event) => {
   const userId = authData.user.id
 
   try {
-    // 2. Insert Account Profile
-    const username = email.split('@')[0] + Math.floor(Math.random() * 1000)
+    // 2. Insert/Update Account Profile
     const { error: accError } = await supabase
       .from('accounts')
-      .insert({
+      .upsert({
         account_id: userId,
         username,
         role: 'Farmer',
         is_active: true
-      })
+      }, { onConflict: 'account_id' })
 
     if (accError) throw accError
 
-    // 3. Insert Farmer Profile
+    // 3. Insert/Update Farmer Profile
     const { error: farmerError } = await supabase
       .from('farmers')
-      .insert({
+      .upsert({
         farmer_id: userId,
         full_name,
         mobile_number
-      })
+      }, { onConflict: 'farmer_id' })
 
     if (farmerError) throw farmerError
 
@@ -87,13 +87,16 @@ export const handler: Handler = async (event) => {
     }
 
   } catch (err: any) {
-    console.error('Registration: DB Error', err.message)
+    console.error('Registration: DB Error', err)
     // Cleanup if DB inserts fail
     await supabase.auth.admin.deleteUser(userId)
     return { 
       statusCode: 500, 
       headers: corsHeaders, 
-      body: JSON.stringify({ error: 'Failed to complete registration profile.' }) 
+      body: JSON.stringify({ 
+        error: 'Failed to complete registration profile.',
+        details: err.message || 'Unknown database error'
+      }) 
     }
   }
 }
