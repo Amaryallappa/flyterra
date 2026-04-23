@@ -56,9 +56,10 @@ export default function RegisterPage() {
 
       toast.success('Account created! Logging you in...')
       
-      // Auto-login
-      await login(data.email, data.password)
-      navigate('/dashboard')
+      // Auto-login after successful registration
+      await login(data.email, data.password, 'Farmer')
+      toast.success('Registration successful! Redirecting to dashboard...')
+      navigate('/farmer')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Registration failed')
     }

@@ -5,7 +5,7 @@ import { supabase } from '@/api/supabase'
 interface AuthContextType {
   user: UserProfile | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, requiredRole: 'Farmer' | 'Operator' | 'Admin') => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
 }
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const profile = await authApi.me()
     if (!profile || profile.role !== requiredRole) {
       await authApi.logout()
-      throw new Error(`Unauthorized: This account is not a ${requiredRole}`)
+      throw new Error(`Invalid account type for this portal. Please use the correct login page.`)
     }
 
     setUser(profile)
