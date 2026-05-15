@@ -38,8 +38,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-10 h-10 object-contain brightness-200" />
-            <span className="text-white font-bold text-2xl tracking-wider">FLYTERRA</span>
+            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-12 h-12 object-contain brightness-200" />
+            <span className="text-white font-black text-3xl tracking-tighter">HECTERRA<span className="text-red-600">.</span></span>
           </Link>
           <p className="text-brand-200 mt-2">Sign in to your account</p>
         </div>
@@ -53,7 +53,7 @@ export default function LoginPage() {
                   {...register('email')} 
                   type="email" 
                   className="input pl-10" 
-                  placeholder="ramesh@example.com" 
+                  placeholder="operator@hecterra.in" 
                   autoComplete="email" 
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -68,7 +68,7 @@ export default function LoginPage() {
                   {...register('password')} 
                   type={showPwd ? 'text' : 'password'} 
                   className="input pl-10 pr-10" 
-                  placeholder="Your password" 
+                  placeholder="root@hecterra.in" 
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <button 

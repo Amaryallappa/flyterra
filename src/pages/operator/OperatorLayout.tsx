@@ -24,8 +24,8 @@ export default function OperatorLayout() {
         lg:relative lg:translate-x-0
       `}>
         <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-100">
-          <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-gray-900 tracking-wider">FLYTERRA</span>
+          <img src="/hecterra logo.svg" alt="HECTERRA" className="w-8 h-8 object-contain" />
+          <span className="font-bold text-gray-900 tracking-wider">HECTERRA</span>
           <button onClick={() => setOpen(false)} className="ml-auto lg:hidden"><X size={18} /></button>
         </div>
         <div className="px-4 py-3 mx-3 mt-3 bg-brand-50 rounded-lg">

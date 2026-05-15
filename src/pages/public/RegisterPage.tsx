@@ -70,8 +70,8 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
-            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-10 h-10 object-contain brightness-200" />
-            <span className="text-white font-bold text-2xl tracking-wider">FLYTERRA</span>
+            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-10 h-10 object-contain brightness-200" />
+            <span className="text-white font-bold text-2xl tracking-wider">HECTERRA</span>
           </Link>
           <p className="text-brand-200 mt-2">Create your farmer account</p>
         </div>

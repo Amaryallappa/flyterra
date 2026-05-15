@@ -22,8 +22,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain" />
-            <span className="font-bold text-xl text-gray-900 tracking-wider">FLYTERRA</span>
+            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-8 h-8 object-contain" />
+            <span className="font-bold text-xl text-gray-900 tracking-wider">HECTERRA</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-brand-600">Features</a>
@@ -64,7 +64,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto text-center">
-            {[['500+', 'Acres Sprayed'], ['98%', 'On-Time Rate'], ['24/7', 'Support']].map(([val, label]) => (
+            {[['0+', 'Acres Sprayed'], ['98%', 'On-Time Rate'], ['24/7', 'Support']].map(([val, label]) => (
               <div key={label}>
                 <div className="text-3xl font-bold">{val}</div>
                 <div className="text-brand-200 text-sm mt-1">{label}</div>
@@ -78,7 +78,7 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Why FLYTERRA?</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Why HECTERRA?</h2>
             <p className="text-gray-500 mt-3 max-w-xl mx-auto">Everything you need for modern precision agriculture.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -143,10 +143,10 @@ export default function LandingPage() {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <img src="/drone-icon.svg" alt="FLYTERRA" className="w-7 h-7 object-contain brightness-200" />
-            <span className="font-bold text-white tracking-wider">FLYTERRA</span>
+            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-7 h-7 object-contain brightness-200" />
+            <span className="font-bold text-white tracking-wider">HECTERRA</span>
           </div>
-          <p className="text-sm">© {new Date().getFullYear()} FLYTERRA. All rights reserved.</p>
+          <p className="text-sm">© {new Date().getFullYear()} HECTERRA. All rights reserved.</p>
           <div className="flex gap-6 text-sm">
             <a href="#" className="hover:text-white">Privacy</a>
             <a href="#" className="hover:text-white">Terms</a>

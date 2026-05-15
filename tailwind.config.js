@@ -11,7 +11,7 @@ export default {
           300: '#74a8d6',
           400: '#4585be',
           500: '#2d6fa4',
-          600: '#234C7B',   /* FLYTERRA logo blue */
+          600: '#234C7B',   /* HECTERRA logo blue */
           700: '#1d3f67',
           800: '#163252',
           900: '#0f233a',

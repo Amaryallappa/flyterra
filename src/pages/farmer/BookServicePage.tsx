@@ -108,7 +108,7 @@ export default function BookServicePage() {
       key:      rz.razorpay_key_id,
       amount:   rz.amount_paise,
       currency: rz.currency,
-      name:     'FLYTERRA',
+      name:     'HECTERRA',
       description: 'Drone Spray Service',
       order_id: rz.razorpay_order_id,
       handler: async (response: {

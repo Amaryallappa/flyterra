@@ -31,8 +31,8 @@ export default function FarmerLayout() {
       `}>
         {/* Logo */}
         <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-100">
-          <img src="/drone-icon.svg" alt="FLYTERRA" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-gray-900 tracking-wider">FLYTERRA</span>
+          <img src="/hecterra logo.svg" alt="HECTERRA" className="w-8 h-8 object-contain" />
+          <span className="font-bold text-gray-900 tracking-wider">HECTERRA</span>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
             <X size={18} />
           </button>
