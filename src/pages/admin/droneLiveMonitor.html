@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
   <style>
     /* ═══════════════════════════ RESET & TOKENS ═══════════════════════════ */
@@ -1295,6 +1296,8 @@
   <script>
     // ─── Config ─────────────────────────────────────────────────────────────────
     const LS = 'drone_gcs_webrtc';
+    const simulationMode = new URLSearchParams(location.search).get('sim') === '1';
+    const simulationSocketUrl = new URLSearchParams(location.search).get('socket') || 'http://localhost:4000';
     let cfg = JSON.parse(localStorage.getItem(LS) || '{}');
     cfg.url = cfg.url || 'http://localhost:8000';
     cfg.map = cfg.map || 'esri-satellite';
@@ -1340,6 +1343,7 @@
     // ─── WebRTC Architecture (Data Channel & Video) ──────────────────────────────
     let pc = null;
     let dataChannel = null;
+    let simulationSocket = null;
 
     async function connectWebRTC() {
       const rtcPill = document.getElementById('p-rtc');
@@ -1414,6 +1418,70 @@
       }
     }
 
+    function connectSimulationSocket() {
+      const rtcPill = document.getElementById('p-rtc');
+      rtcPill.textContent = 'SITL · Video Offline';
+      rtcPill.className = 'pill pill-muted';
+
+      if (!window.io) {
+        log('ERROR', 'Socket.IO client failed to load. Check the network connection and reload.');
+        return;
+      }
+
+      const track = [];
+      simulationSocket = window.io(simulationSocketUrl, { transports: ['websocket'] });
+      simulationSocket.on('connect', () => {
+        simulationSocket.emit('join_drone', { drone_id: 1 });
+        document.getElementById('p-mav').textContent = 'SITL Connected';
+        document.getElementById('p-mav').className = 'pill pill-yellow';
+        log('INFO', 'Connected to local SITL companion');
+      });
+      simulationSocket.on('connect_error', (err) => {
+        document.getElementById('p-mav').textContent = 'SITL Disconnected';
+        document.getElementById('p-mav').className = 'pill pill-red';
+        log('WARN', 'SITL connection failed: ' + err.message);
+      });
+      simulationSocket.on('disconnect', () => {
+        document.getElementById('p-mav').textContent = 'SITL Disconnected';
+        document.getElementById('p-mav').className = 'pill pill-red';
+        log('WARN', 'SITL companion disconnected');
+      });
+      simulationSocket.on('drone_telemetry', (frame) => {
+        const lat = frame.gps_lat;
+        const lon = frame.gps_lng;
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          track.push([lat, lon]);
+          if (track.length > 300) track.shift();
+        }
+
+        updateUI({
+          alt_rel: frame.altitude_meters,
+          alt_msl: frame.alt_msl,
+          speed: frame.speed_mps,
+          climb: frame.climb_mps,
+          heading: frame.heading_deg,
+          rssi: frame.rssi,
+          gps_sats: frame.gps_sats,
+          throttle: frame.throttle_pct,
+          battery_pct: frame.remaining_percentage,
+          lat,
+          lon,
+          gps_fix: frame.gps_fix_type,
+          gps_hdop: frame.gps_hdop,
+          mode: frame.flight_mode,
+          armed: frame.armed,
+          roll: frame.roll_deg,
+          pitch: frame.pitch_deg,
+          yaw: frame.yaw_deg
+        }, track, true);
+        setText('v-bat-v', frame.voltage_total != null ? frame.voltage_total.toFixed(1) + 'V' : '–V');
+      });
+      simulationSocket.on('command_ack', (ack) => {
+        const ok = ack.status === 'ok';
+        log(ok ? 'INFO' : 'ERROR', ok ? `${ack.command} accepted` : (ack.msg || 'Command failed'));
+      });
+    }
+
     // 4. DataChannel Heartbeat
     setInterval(() => {
       if (dataChannel && dataChannel.readyState === 'open') {
@@ -1423,6 +1491,31 @@
 
     // ─── Command Sender (via DataChannel) ────────────────────────────────────────
     function sendCommand(action, payload = {}) {
+      if (simulationMode) {
+        const commands = {
+          arm: { command: 'ARM' },
+          disarm: { command: 'DISARM' },
+          rtl: { command: 'RTL' },
+          land: { command: 'LAND' },
+          takeoff: { command: 'TAKEOFF', param1: Number(payload.alt) || 15 },
+          mode: { command: 'SET_MODE', mode: payload.mode },
+          pause: { command: 'PAUSE' },
+          resume: { command: 'RESUME' }
+        };
+        const command = commands[action];
+        if (!command) {
+          log('ERROR', `${action.toUpperCase()} is not supported in SITL mode`);
+          return;
+        }
+        if (!simulationSocket?.connected) {
+          log('ERROR', 'SITL companion is not connected');
+          return;
+        }
+        simulationSocket.emit('drone_command', { ...command, issued_by: 'sitl-gcs' });
+        log('INFO', `Sent SITL command: ${command.command}`);
+        return;
+      }
+
       if (dataChannel && dataChannel.readyState === 'open') {
         const pkt = JSON.stringify({ action, payload });
         dataChannel.send(pkt);
@@ -1872,7 +1965,8 @@
     }
 
     // ─── INIT ────────────────────────────────────────────────────────────────────
-    connectWebRTC();
+    if (simulationMode) connectSimulationSocket();
+    else connectWebRTC();
 
   </script>
 </body>

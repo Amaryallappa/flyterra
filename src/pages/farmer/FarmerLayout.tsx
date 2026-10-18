@@ -30,9 +30,9 @@ export default function FarmerLayout() {
         lg:relative lg:translate-x-0
       `}>
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-gray-100">
-          <img src="/hecterra logo.svg" alt="HECTERRA" className="w-8 h-8 object-contain" />
-          <span className="font-bold text-gray-900 tracking-wider">HECTERRA</span>
+        <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-100">
+          <img src="/hecterra logo.svg" alt="HECTERRA" className="h-9 w-auto object-contain" />
+          <span className="font-bold text-gray-900 tracking-wider text-base">HECTERRA</span>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-gray-400">
             <X size={18} />
           </button>

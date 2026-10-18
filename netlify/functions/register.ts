@@ -56,47 +56,27 @@ export const handler: Handler = async (event) => {
 
   const userId = authData.user.id
 
+  // 2. Fallback DB inserts (in case trigger is disabled)
   try {
-    // 2. Insert/Update Account Profile
-    const { error: accError } = await supabase
-      .from('accounts')
-      .upsert({
-        account_id: userId,
-        username,
-        role: 'Farmer',
-        is_active: true
-      }, { onConflict: 'account_id' })
+    await supabase.from('accounts').upsert({
+      account_id: userId,
+      username,
+      role: 'Farmer',
+      is_active: true
+    }, { onConflict: 'account_id' })
 
-    if (accError) throw accError
+    await supabase.from('farmers').upsert({
+      farmer_id: userId,
+      full_name,
+      mobile_number
+    }, { onConflict: 'farmer_id' })
+  } catch (err) {
+    console.warn('Registration: Trigger may be missing, using fallback inserts failed', err)
+  }
 
-    // 3. Insert/Update Farmer Profile
-    const { error: farmerError } = await supabase
-      .from('farmers')
-      .upsert({
-        farmer_id: userId,
-        full_name,
-        mobile_number
-      }, { onConflict: 'farmer_id' })
-
-    if (farmerError) throw farmerError
-
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ success: true, user_id: userId })
-    }
-
-  } catch (err: any) {
-    console.error('Registration: DB Error', err)
-    // Cleanup if DB inserts fail
-    await supabase.auth.admin.deleteUser(userId)
-    return { 
-      statusCode: 500, 
-      headers: corsHeaders, 
-      body: JSON.stringify({ 
-        error: 'Failed to complete registration profile.',
-        details: err.message || 'Unknown database error'
-      }) 
-    }
+  return {
+    statusCode: 200,
+    headers: corsHeaders,
+    body: JSON.stringify({ success: true, user_id: userId })
   }
 }

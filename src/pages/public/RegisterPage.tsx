@@ -66,68 +66,84 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-900 to-brand-700 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 selection:bg-neutral-900 selection:text-white">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-10 h-10 object-contain brightness-200" />
-            <span className="text-white font-bold text-2xl tracking-wider">HECTERRA</span>
+          <Link to="/" className="inline-flex items-center gap-3.5 group">
+            <img
+              src="/hecterra logo.svg"
+              alt="HECTERRA"
+              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="text-neutral-900 font-bold text-2xl tracking-wider">
+              HECTERRA
+            </span>
           </Link>
-          <p className="text-brand-200 mt-2">Create your farmer account</p>
+          <p className="text-neutral-500 mt-2 text-sm font-normal">Create your farmer account</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-3xl shadow-xl shadow-neutral-200/60 border border-neutral-200/80 p-8 sm:p-9">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                  Full Name
+                </label>
                 <input {...register('full_name')} className="input" placeholder="Ramesh Kumar" />
-                {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>}
+                {errors.full_name && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.full_name.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                  Mobile
+                </label>
                 <input 
                   {...register('mobile_number')} 
                   onChange={handleMobileChange}
                   className="input" 
                   placeholder="9876543210" 
                 />
-                {errors.mobile_number && <p className="text-red-500 text-xs mt-1">{errors.mobile_number.message}</p>}
+                {errors.mobile_number && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.mobile_number.message}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                Email Address
+              </label>
               <input {...register('email')} type="email" className="input" placeholder="ramesh@example.com" autoComplete="email" />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <input {...register('password')} type={showPwd ? 'text' : 'password'} className="input pr-10" placeholder="Min 8 chars" />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors">
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+              {errors.password && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                Confirm Password
+              </label>
               <input {...register('confirm')} type={showPwd ? 'text' : 'password'} className="input" placeholder="Re-enter password" />
-              {errors.confirm && <p className="text-red-500 text-xs mt-1">{errors.confirm.message}</p>}
+              {errors.confirm && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.confirm.message}</p>}
             </div>
 
-            <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-2.5 mt-2">
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-3 mt-3 text-sm font-medium tracking-wide">
               {isSubmitting ? 'Creating account…' : 'Create Farmer Account'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-neutral-500 mt-6 pt-5 border-t border-neutral-100">
             Already have an account?{' '}
-            <Link to="/login" className="text-brand-600 font-medium hover:underline">Sign in</Link>
+            <Link to="/login" className="text-neutral-900 font-semibold hover:underline">Sign in</Link>
           </p>
         </div>
       </div>

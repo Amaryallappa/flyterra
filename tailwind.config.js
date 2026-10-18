@@ -4,17 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
+        charcoal: {
+          50:  '#F7F7F8',
+          100: '#EBEBED',
+          200: '#D5D5D8',
+          300: '#B2B2B8',
+          400: '#7E7E87',
+          500: '#54545C',
+          600: '#3D3D3D',   /* Primary charcoal */
+          700: '#2C2C2E',
+          800: '#1C1C1E',
+          900: '#121214',
+          950: '#0A0A0C',
+        },
         brand: {
-          50:  '#eef4fb',
-          100: '#d5e5f4',
-          200: '#a9cbe9',
-          300: '#74a8d6',
-          400: '#4585be',
-          500: '#2d6fa4',
-          600: '#234C7B',   /* HECTERRA logo blue */
-          700: '#1d3f67',
-          800: '#163252',
-          900: '#0f233a',
+          50:  '#F7F7F8',
+          100: '#EBEBED',
+          200: '#D5D5D8',
+          300: '#B2B2B8',
+          400: '#7E7E87',
+          500: '#54545C',
+          600: '#3D3D3D',   /* Replaced blue with primary charcoal */
+          700: '#2C2C2E',
+          800: '#1C1C1E',
+          900: '#121214',
         },
       },
       fontFamily: {

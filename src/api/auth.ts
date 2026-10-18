@@ -11,11 +11,13 @@ export interface RegisterPayload {
 }
 export interface UserProfile {
   account_id: string
-  username: string
-  role: 'Farmer' | 'Operator' | 'Admin'
-  is_active: boolean
-  full_name?: string
-  mobile_number?: string
+  username:   string
+  role:       'Farmer' | 'Operator' | 'Admin'
+  is_active:  boolean
+  // joined from farmers / operators
+  full_name?:                string
+  mobile_number?:            string
+  email?:                    string
   assigned_base_station_id?: number | null
 }
 
@@ -56,6 +58,7 @@ export const authApi = {
   me: async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return null
+
     const { data, error } = await supabase
       .from('accounts')
       .select('account_id, username, role, is_active')
@@ -64,13 +67,31 @@ export const authApi = {
     if (error) throw error
     const profile = data as UserProfile
 
+    if (profile.role === 'Farmer') {
+      const { data: farmer } = await supabase
+        .from('farmers')
+        .select('full_name, mobile_number, email')
+        .eq('farmer_id', session.user.id)
+        .single()
+      if (farmer) {
+        profile.full_name     = farmer.full_name
+        profile.mobile_number = farmer.mobile_number
+        profile.email         = farmer.email
+      }
+    }
+
     if (profile.role === 'Operator') {
       const { data: op } = await supabase
         .from('operators')
-        .select('assigned_base_station_id')
+        .select('full_name, mobile_number, email, assigned_base_station_id')
         .eq('operator_id', session.user.id)
         .single()
-      if (op) profile.assigned_base_station_id = op.assigned_base_station_id
+      if (op) {
+        profile.full_name                = op.full_name
+        profile.mobile_number            = op.mobile_number
+        profile.email                    = op.email
+        profile.assigned_base_station_id = op.assigned_base_station_id
+      }
     }
 
     return profile

@@ -37,6 +37,7 @@ import SettingsPage        from '@/pages/admin/SettingsPage'
 import AdminBookingsPage   from '@/pages/admin/AdminBookingsPage'
 import FarmersPage         from '@/pages/admin/FarmersPage'
 import FarmerDetailPage    from '@/pages/admin/FarmerDetailPage'
+import MediaManagementPage from '@/pages/admin/MediaManagementPage'
 
 function RoleGuard({ roles, children, loginPath = "/login" }: { roles: string[]; children: React.ReactNode, loginPath?: string }) {
   const { user, loading } = useAuth()
@@ -99,6 +100,7 @@ export default function App() {
           {/* Admin */}
           <Route path="/admin" element={<RoleGuard roles={['Admin']} loginPath="/admin/login"><AdminLayout /></RoleGuard>}>
             <Route index                    element={<AdminDashboard />} />
+            <Route path="media"             element={<MediaManagementPage />} />
             <Route path="stations"          element={<StationsPage />} />
             <Route path="drones"            element={<DronesPage />} />
             <Route path="batteries"         element={<BatteriesPage />} />

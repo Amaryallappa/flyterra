@@ -34,71 +34,83 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
+    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 selection:bg-neutral-900 selection:text-white">
       <div className="w-full max-w-md relative">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <img src="/hecterra logo.svg" alt="HECTERRA" className="w-12 h-12 object-contain brightness-200" />
-            <span className="text-white font-black text-3xl tracking-tighter">HECTERRA<span className="text-red-600">.</span></span>
-          </div>
-          <div className="flex items-center justify-center gap-2 text-slate-400 uppercase tracking-[0.2em] text-[10px] font-bold">
-            <ShieldAlert size={12} className="text-red-500" />
-            Central Command Station
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-3.5 group">
+            <img
+              src="/hecterra logo.svg"
+              alt="HECTERRA"
+              className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
+            <span className="text-neutral-900 font-bold text-2xl tracking-wider">
+              HECTERRA
+            </span>
+          </Link>
+          <div className="flex items-center justify-center gap-1.5 text-neutral-500 uppercase tracking-widest text-[11px] font-semibold mt-2">
+            <ShieldAlert size={13} className="text-neutral-700" />
+            Central Command Administration
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-2xl shadow-2xl p-8 border border-slate-800">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="bg-white rounded-3xl shadow-xl shadow-neutral-200/60 p-8 sm:p-9 border border-neutral-200/80">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Admin Identifier</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                Admin Identifier
+              </label>
               <div className="relative">
                 <input 
                   {...register('email')} 
                   type="email" 
-                  className="w-full bg-slate-800 border-slate-700 text-white rounded-xl py-3 pl-10 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all" 
+                  className="input pl-10" 
                   placeholder="root@hecterra.in" 
                   autoComplete="email" 
                 />
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" size={17} />
               </div>
-              {errors.email && <p className="text-red-500 text-xs mt-1 font-medium">{errors.email.message}</p>}
+              {errors.email && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Security Key</label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 mb-1.5">
+                Master Security Key
+              </label>
               <div className="relative">
                 <input 
                   {...register('password')} 
                   type={showPwd ? 'text' : 'password'} 
-                  className="w-full bg-slate-800 border-slate-700 text-white rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all" 
+                  className="input pl-10 pr-10" 
                   placeholder="••••••••" 
                 />
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" size={17} />
                 <button 
                   type="button" 
                   onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
                 >
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1 font-medium">{errors.password.message}</p>}
+              {errors.password && <p className="text-rose-600 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
             </div>
 
             <button 
               type="submit" 
               disabled={isSubmitting} 
-              className="w-full py-3 px-4 bg-red-700 hover:bg-red-600 text-white font-black rounded-xl shadow-[0_0_20px_rgba(185,28,28,0.2)] transition-all active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-sm"
+              className="btn-primary w-full py-3 mt-3 text-sm font-medium tracking-wide"
             >
               {isSubmitting ? 'Authenticating...' : 'Establish Secure Connection'}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-             <p className="text-[10px] text-slate-600 uppercase font-bold">
-               System monitor: <span className="text-green-500">Active</span> · Secure layer: <span className="text-green-500">Encrypted</span>
-             </p>
+          <div className="mt-8 pt-5 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-400">
+            <Link to="/login" className="hover:text-neutral-700 transition-colors">
+              ← Farmer Sign In
+            </Link>
+            <Link to="/operator/login" className="hover:text-neutral-700 transition-colors">
+              Operator Portal →
+            </Link>
           </div>
         </div>
       </div>
