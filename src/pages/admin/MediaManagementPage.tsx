@@ -840,7 +840,7 @@ export default function MediaManagementPage() {
                     onChange={(e) => setUploadSlideId(Number(e.target.value))}
                     className="w-full text-xs border border-neutral-200 rounded-xl px-3 py-2 text-gray-800 focus:outline-none"
                   >
-                    <option value={1}>Slide 1: HECTERRA</option>
+                    <option value={1}>Slide 1: HecTerra</option>
                     <option value={2}>Slide 2: SWARM</option>
                     <option value={3}>Slide 3: RTK</option>
                   </select>

@@ -30,8 +30,8 @@ export default function AdminLayout() {
         lg:relative lg:translate-x-0
       `}>
         <div className="h-16 flex items-center gap-3 px-6 border-b border-gray-100">
-          <img src="/hecterra logo.svg" alt="HECTERRA" className="h-9 w-auto object-contain" />
-          <span className="font-bold text-gray-900 tracking-wider text-base">HECTERRA</span>
+          <img src="/hecterra logo.svg" alt="HecTerra" className="h-9 w-auto object-contain" />
+          <span className="font-bold text-gray-900 tracking-wider text-base">HecTerra</span>
           <button onClick={() => setOpen(false)} className="ml-auto lg:hidden text-gray-400"><X size={18} /></button>
         </div>
         <div className="px-4 py-3 mx-3 mt-3 bg-neutral-100 rounded-lg">

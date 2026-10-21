@@ -14,7 +14,7 @@ export interface HeroSlideData {
   posterUrl: string
   thumbUrl: string
   fallbackImageUrl: string
-  primaryCta: { label: string; to: string }
+  primaryCta?: { label: string; to: string }
   secondaryCta: { label: string; href: string }
 }
 
@@ -45,10 +45,10 @@ export function withCacheBuster(url: string, timestamp: number = CACHE_BUST): st
 export const HERO_SLIDES: HeroSlideData[] = [
   {
     id: 1,
-    name: 'HECTERRA',
-    navLabel: 'HECTERRA',
+    name: 'HecTerra',
+    navLabel: 'HecTerra',
     tag: 'Autonomous Agricultural Drone',
-    title: 'HECTERRA',
+    title: 'HecTerra',
     highlight: 'Lead the Scene.',
     description: 'Centimeter RTK precision flight delivers uniform crop coverage with zero chemical waste.',
     specs: [
@@ -61,7 +61,6 @@ export const HERO_SLIDES: HeroSlideData[] = [
     posterUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-poster-1.jpg`),
     thumbUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-thumb-1.jpg`),
     fallbackImageUrl: withCacheBuster('/media/hero/images/hero-poster-1.jpg'),
-    primaryCta: { label: 'Learn More', to: '/register' },
     secondaryCta: { label: 'Book a Spray', href: '/register' },
   },
   {
@@ -82,7 +81,6 @@ export const HERO_SLIDES: HeroSlideData[] = [
     posterUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-poster-2.jpg`),
     thumbUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-thumb-2.jpg`),
     fallbackImageUrl: withCacheBuster('/media/hero/images/hero-poster-2.jpg'),
-    primaryCta: { label: 'Learn More', to: '/register' },
     secondaryCta: { label: 'Book a Spray', href: '/register' },
   },
   {
@@ -103,7 +101,6 @@ export const HERO_SLIDES: HeroSlideData[] = [
     posterUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-poster-3.jpg`),
     thumbUrl: withCacheBuster(`${STORAGE_BASE}/hero/images/hero-thumb-3.jpg`),
     fallbackImageUrl: withCacheBuster('/media/hero/images/hero-poster-3.jpg'),
-    primaryCta: { label: 'Learn More', to: '/register' },
     secondaryCta: { label: 'Book a Spray', href: '/register' },
   },
 ]

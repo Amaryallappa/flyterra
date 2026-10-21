@@ -78,23 +78,15 @@ export default function HeroSlide({ slide, isActive }: HeroSlideProps) {
           {slide.description}
         </p>
 
-        {/* DJI-Style Dual Pill Action CTAs */}
-        <div className="flex w-full max-w-sm items-center justify-center gap-2.5 sm:gap-3">
+        {/* DJI-Style Pill Action CTA */}
+        <div className="flex w-full items-center justify-center">
           <Link
-            to={slide.primaryCta.to}
-            className="inline-flex flex-1 items-center justify-center gap-1 whitespace-nowrap px-3 sm:px-6 py-2 rounded-full border border-white/40 text-white font-medium text-xs sm:text-sm hover:border-white hover:bg-white/10 transition-all duration-200 backdrop-blur-sm"
-          >
-            {slide.primaryCta.label}
-            <ChevronRight size={14} />
-          </Link>
-
-          <a
-            href={slide.secondaryCta.href}
-            className="inline-flex flex-1 items-center justify-center gap-1 whitespace-nowrap px-3 sm:px-6 py-2 rounded-full bg-white text-black font-medium text-xs sm:text-sm hover:bg-neutral-200 transition-all duration-200 shadow-md"
+            to={slide.secondaryCta.href}
+            className="inline-flex items-center justify-center gap-1.5 px-6 sm:px-7 py-2.5 rounded-full bg-white text-black font-medium text-xs sm:text-sm hover:bg-neutral-200 active:scale-[0.98] transition-all duration-200 shadow-md"
           >
             {slide.secondaryCta.label}
-            <ChevronRight size={14} />
-          </a>
+            <ChevronRight size={15} />
+          </Link>
         </div>
       </div>
     </div>

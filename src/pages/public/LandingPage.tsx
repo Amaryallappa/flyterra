@@ -151,7 +151,7 @@ export default function LandingPage() {
           <Link to="/" className="flex items-center gap-3 group">
             <img
               src={scrolled ? "/hecterra logo.svg" : "/hecterra-logo-white.svg"}
-              alt="HECTERRA Logo"
+              alt="HecTerra Logo"
               className="h-9 sm:h-10 w-auto object-contain transition-all duration-500 ease-out group-hover:scale-105"
             />
             <span
@@ -159,7 +159,7 @@ export default function LandingPage() {
                 scrolled ? 'text-neutral-900' : 'text-white'
               }`}
             >
-              HECTERRA
+              HecTerra
             </span>
           </Link>
 
@@ -386,9 +386,10 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7">
             {fieldCards.map((card, idx) => (
-              <div
+              <Link
                 key={idx}
-                className="group relative rounded-none overflow-hidden aspect-[4/5] sm:aspect-[3/4] md:h-[540px] flex flex-col justify-start p-7 sm:p-8 text-center bg-neutral-900 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer"
+                to={card.link}
+                className="group relative rounded-none overflow-hidden aspect-[4/5] sm:aspect-[3/4] md:h-[540px] flex flex-col justify-start p-7 sm:p-8 text-center bg-neutral-900 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer block"
               >
                 {/* Background Image with smooth hover scale */}
                 <img
@@ -420,15 +421,8 @@ export default function LandingPage() {
                   <p className="text-xs sm:text-sm text-white/90 font-light max-w-[260px] leading-relaxed mb-4">
                     {card.subtitle}
                   </p>
-                  <Link
-                    to={card.link}
-                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-white hover:text-white/80 transition-colors"
-                  >
-                    <span>Learn More</span>
-                    <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -446,7 +440,7 @@ export default function LandingPage() {
                 Next-Generation Aerial Robotics.
               </h2>
               <p className="text-neutral-600 text-sm sm:text-base leading-relaxed mb-8">
-                Every drone in the HECTERRA fleet is equipped with fail-safe telemetry,
+                Every drone in the HecTerra fleet is equipped with fail-safe telemetry,
                 centimeter-precision RTK navigation, and precision centrifugal atomization
                 nozzles to ensure zero pesticide drift.
               </p>
@@ -614,7 +608,7 @@ export default function LandingPage() {
                   Fleet & Hardware
                 </h4>
                 <ul className="space-y-2.5 text-neutral-400 font-normal">
-                  <li><a href="#technology" className="hover:text-white transition-colors">HECTERRA</a></li>
+                  <li><a href="#technology" className="hover:text-white transition-colors">HecTerra</a></li>
                   <li><a href="#technology" className="hover:text-white transition-colors">SWARM Fleet</a></li>
                   <li><a href="#technology" className="hover:text-white transition-colors">RTK Base Station</a></li>
                   <li><a href="#technology" className="hover:text-white transition-colors">Centrifugal Atomizers</a></li>
@@ -626,7 +620,7 @@ export default function LandingPage() {
                   Service Plans
                 </h4>
                 <ul className="space-y-2.5 text-neutral-400 font-normal">
-                  <li><a href="#pricing" className="hover:text-white transition-colors">HECTERRA Care Refresh</a></li>
+                  <li><a href="#pricing" className="hover:text-white transition-colors">HecTerra Care Refresh</a></li>
                   <li><a href="#pricing" className="hover:text-white transition-colors">Precision Crop Spraying</a></li>
                   <li><a href="#pricing" className="hover:text-white transition-colors">Orchard Canopy Coverage</a></li>
                   <li><a href="#pricing" className="hover:text-white transition-colors">Fleet Maintenance Program</a></li>
@@ -697,8 +691,8 @@ export default function LandingPage() {
                 <ul className="space-y-2.5 text-neutral-400 font-normal">
                   <li><a href="#technology" className="hover:text-white transition-colors">Media Center</a></li>
                   <li><a href="#features" className="hover:text-white transition-colors">Buying Guides</a></li>
-                  <li><a href="#technology" className="hover:text-white transition-colors">HECTERRA Trust Center</a></li>
-                  <li><a href="#features" className="hover:text-white transition-colors">HECTERRA Blog</a></li>
+                  <li><a href="#technology" className="hover:text-white transition-colors">HecTerra Trust Center</a></li>
+                  <li><a href="#features" className="hover:text-white transition-colors">HecTerra Blog</a></li>
                 </ul>
               </div>
               <div>
@@ -732,7 +726,7 @@ export default function LandingPage() {
                   Subscribe
                 </h4>
                 <p className="text-[11px] text-neutral-400 leading-relaxed mb-3">
-                  Get the latest news from HECTERRA
+                  Get the latest news from HecTerra
                 </p>
                 <form
                   onSubmit={(e) => {
@@ -779,11 +773,11 @@ export default function LandingPage() {
               <Link to="/" className="flex items-center gap-3 group">
                 <img
                   src="/hecterra-logo-white.svg"
-                  alt="HECTERRA"
+                  alt="HecTerra"
                   className="h-9 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform"
                 />
                 <span className="font-bold text-white tracking-wider text-base">
-                  HECTERRA
+                  HecTerra
                 </span>
               </Link>
 
@@ -830,7 +824,7 @@ export default function LandingPage() {
           <div className="pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-[11px] text-neutral-500 font-normal">
             <div className="space-y-1">
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-neutral-400">
-                <a href="#" className="hover:text-white transition-colors">HECTERRA Privacy Policy</a>
+                <a href="#" className="hover:text-white transition-colors">HecTerra Privacy Policy</a>
                 <span>·</span>
                 <a href="#" className="hover:text-white transition-colors">Use of Cookies</a>
                 <span>·</span>
@@ -841,7 +835,7 @@ export default function LandingPage() {
                 <a href="#" className="hover:text-white transition-colors">Accessibility</a>
               </div>
               <div>
-                Copyright © {new Date().getFullYear()} HECTERRA All Rights Reserved. Feedback on web experience
+                Copyright © {new Date().getFullYear()} HecTerra All Rights Reserved. Feedback on web experience
               </div>
             </div>
 

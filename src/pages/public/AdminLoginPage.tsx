@@ -40,11 +40,11 @@ export default function AdminLoginPage() {
           <Link to="/" className="inline-flex items-center gap-3.5 group">
             <img
               src="/hecterra logo.svg"
-              alt="HECTERRA"
+              alt="HecTerra"
               className="h-10 sm:h-11 w-auto object-contain group-hover:scale-105 transition-transform"
             />
             <span className="text-neutral-900 font-bold text-2xl tracking-wider">
-              HECTERRA
+              HecTerra
             </span>
           </Link>
           <div className="flex items-center justify-center gap-1.5 text-neutral-500 uppercase tracking-widest text-[11px] font-semibold mt-2">
