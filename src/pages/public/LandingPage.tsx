@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CheckCircle2,
@@ -104,12 +104,22 @@ export default function LandingPage() {
   const [subscribeEmail, setSubscribeEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
 
+  const contentRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 30)
+      if (contentRef.current) {
+        // Change header style when the below section reaches the halfway (1/2) mark of the hero
+        const rect = contentRef.current.getBoundingClientRect()
+        setScrolled(rect.top <= window.innerHeight * 0.5)
+      } else {
+        setScrolled(window.scrollY > window.innerHeight * 0.5)
+      }
       setShowScrollTop(window.scrollY > 400)
     }
-    window.addEventListener('scroll', handleScroll)
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -328,11 +338,15 @@ export default function LandingPage() {
         )}
       </nav>
 
-      {/* ── DJI-Style Fullscreen Hero Section ─────────────────────────────── */}
-      <HeroSlider />
+      {/* ── DJI-Style Fullscreen Hero Section (Sticky on scroll) ────────── */}
+      <div className="sticky top-0 z-0">
+        <HeroSlider />
+      </div>
 
-      {/* ── Key Metrics Showcase Bar (Clean White / Charcoal Style) ────────── */}
-      <section className="bg-white border-y border-neutral-200/80 py-10 relative">
+      {/* ── Content scrolls above sticky hero ─────────────────────────────── */}
+      <div ref={contentRef} className="relative z-10 bg-white">
+        {/* ── Key Metrics Showcase Bar (Clean White / Charcoal Style) ────────── */}
+        <section className="bg-white border-y border-neutral-200/80 py-10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
@@ -852,6 +866,7 @@ export default function LandingPage() {
           </div>
         )}
       </footer>
+      </div>
     </div>
   )
 }
